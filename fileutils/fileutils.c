@@ -57,4 +57,49 @@ void mkdir_r(const char *path) {
 
     free(current_buffer);
 }
+
+
+void copy_file(const char *src, const char *dest) {
+    // Open source file for reading
+    FILE *srcfp = fopen(src, "r");
+    if (!srcfp) // Error checking
+        return;
+
+    // Determine file size
+    fseek(srcfp, 0, SEEK_END); // Move to end
+    const size_t src_size = ftell(srcfp); // Get file-position
+    fseek(srcfp, 0, SEEK_SET); // Move to beginning
+
+    // Allocate buffer for data from source file
+    char *src_buffer = (char *)calloc(src_size + 1, sizeof(char));
+    if (!src_buffer) { // Error checking
+        fclose(srcfp); // We have to close this file
+        return;
+    }
+
+    // Read from file into buffer
+    fread(src_buffer, sizeof(char), src_size, srcfp);
+
+    puts(src_buffer);
+
+    // Open dest file for writing
+    FILE *destfp = fopen(dest, "w");
+
+    if (!destfp) { // Error checking
+        fclose(srcfp); // We have to close this ...
+        free(src_buffer); // We have to free this ...
+        return;
+    }
+
+    // Write to destination file
+    fwrite(src_buffer, sizeof(char), src_size, destfp);
+
+    // Cleanup
+    fclose(srcfp);
+    free(src_buffer);
+    fclose(destfp);
+}
+
+
+
 #endif // FILE_UTILS_H

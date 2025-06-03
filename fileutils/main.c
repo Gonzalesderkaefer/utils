@@ -2,5 +2,5 @@
 
 
 int main(void) {
-    mkdir_r("/home/testuser/vim/");
+    copy_file("/home/user1/.devicespecific.sh", "/home/user1/hel/zshrccc");
 }
