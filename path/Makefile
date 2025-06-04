@@ -38,6 +38,12 @@ AOBJFILES :=
 HEADER :=
 
 
+# Export
+out: $(OBJFILES)
+
+
+
+# Compile and run test program
 test: $(OBJFILES)
 	gcc $^ -o $(RUNDIR)/test.out
 	$(RUNDIR)/test.out
@@ -48,6 +54,6 @@ $(BUILDDIR)/%.o: $(SRCDIR)/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 
-# Target for test file
+# Target for Test Object file
 $(BUILDDIR)/test.o: $(TESTDIR)/test.c
 	$(CC) $(CFLAGS) -c $< -o $@

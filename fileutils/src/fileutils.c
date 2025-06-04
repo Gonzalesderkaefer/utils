@@ -2,20 +2,28 @@
 #ifndef FILE_UTILS_H
 #define FILE_UTILS_H
 
+// Header file
+#include "headers/fileutils.h"
+
+
+
 // Libraries
+#include <dirent.h>
 #include <stddef.h>
+#include <sys/types.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 
+#include "headers/path.h"
 
 
 
 
-
-
-void mkdir_r(const char *path) {
+/// This function essenially creates the entire `path` that is passed
+/// it works like mkdir -p
+void mkdir_p(const char *path) {
     // Copy path to buffer on stack (for strtok_r)
     size_t pathlen = strlen(path) + 1; // Determine length for buffer
     char pathbuf[pathlen]; // Create buffer
@@ -58,7 +66,7 @@ void mkdir_r(const char *path) {
     free(current_buffer);
 }
 
-
+/// This function copies the file at `src` to `dest`
 void copy_file(const char *src, const char *dest) {
     // Open source file for reading
     FILE *srcfp = fopen(src, "r");
@@ -80,8 +88,6 @@ void copy_file(const char *src, const char *dest) {
     // Read from file into buffer
     fread(src_buffer, sizeof(char), src_size, srcfp);
 
-    puts(src_buffer);
-
     // Open dest file for writing
     FILE *destfp = fopen(dest, "w");
 
@@ -98,6 +104,26 @@ void copy_file(const char *src, const char *dest) {
     fclose(srcfp);
     free(src_buffer);
     fclose(destfp);
+}
+
+/// This function copies `srcdir` to `dest` where
+/// `dest` will become the new parent directory
+void copy_r(const char *srcdir, const char dest) {
+    // Open source directory
+    DIR *source_dir = opendir(srcdir);
+    if (!source_dir) // Error checking
+        return;
+
+    struct dirent *dircontent; // This is one directory entry
+    // Iterate through directory
+    while((dircontent = readdir(source_dir))) {
+
+
+    }
+
+
+    // Cleanup
+    closedir(source_dir);
 }
 
 
