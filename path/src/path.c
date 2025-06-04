@@ -1,3 +1,6 @@
+// The Header file
+#include "headers/path.h"
+
 // Libraries
 #include <assert.h>
 #include <stddef.h>
