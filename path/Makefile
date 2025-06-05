@@ -39,7 +39,11 @@ HEADER :=
 
 
 # Export
-out: $(OBJFILES)
+export: $(OBJFILES)
+	cp $(BUILDDIR)/path.o $(TARGETDIR)/path.o
+	cp $(HEADDIR)/path.h $(TARGETDIR)/path.h
+
+
 
 
 
