@@ -28,11 +28,11 @@ LIBRARIES := lib
 # Source files
 SRCFILES := $(wildcard src/*.c)
 
-# Object files
-OBJFILES := $(patsubst $(SRCDIR)/%.c, $(BUILDDIR)/%.o, $(SRCFILES)) $(BUILDDIR)/path.o
-
 # Addional Object files
-AOBJFILES :=
+AOBJFILES := $(BUILDDIR)/path.o
+
+# Object files
+OBJFILES := $(patsubst $(SRCDIR)/%.c, $(BUILDDIR)/%.o, $(SRCFILES)) $(AOBJFILES)
 
 # This is the header file that will be provided provided
 HEADER :=
