@@ -29,7 +29,7 @@ LIBRARIES := lib
 SRCFILES := $(wildcard src/*.c)
 
 # Object files
-OBJFILES := $(patsubst $(SRCDIR)/%.c, $(BUILDDIR)/%.o, $(SRCFILES)) $(BUILDDIR)/test.o $(BUILDDIR)/path.o
+OBJFILES := $(patsubst $(SRCDIR)/%.c, $(BUILDDIR)/%.o, $(SRCFILES)) $(BUILDDIR)/path.o
 
 # Addional Object files
 AOBJFILES :=
@@ -37,13 +37,13 @@ AOBJFILES :=
 # This is the header file that will be provided provided
 HEADER :=
 
-out: $(OBJFILES)
+export: $(OBJFILES)
 	ld -r $^ -o $(TARGETDIR)/fileutils.o
 	cp $(HEADDIR)/fileutils.h $(TARGETDIR)/fileutils.h
 
 
-test: $(OBJFILES)
-	gcc $^ -o $(RUNDIR)/test.out
+test: $(BUILDDIR)/test.o export
+	gcc $(TARGETDIR)/fileutils.o $< -o $(RUNDIR)/test.out
 	$(RUNDIR)/test.out
 
 
