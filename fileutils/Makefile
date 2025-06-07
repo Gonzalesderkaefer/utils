@@ -41,6 +41,9 @@ export: $(OBJFILES)
 	ld -r $^ -o $(TARGETDIR)/fileutils.o
 	cp $(HEADDIR)/fileutils.h $(TARGETDIR)/fileutils.h
 
+$(BUILDDIR)/path.o: ../path/Makefile
+	(cd $(shell dirname $<); make export)
+	@cp $(shell dirname $<)/target/path.o $@
 
 test: $(BUILDDIR)/test.o export
 	gcc $(TARGETDIR)/fileutils.o $< -o $(RUNDIR)/test.out
