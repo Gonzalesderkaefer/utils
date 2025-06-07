@@ -8,6 +8,8 @@
 #include <assert.h>
 #include <string.h>
 #include <strings.h>
+#include <stdbool.h>
+#include <sys/types.h>
 
 
 #define INIT_SIZE 16
@@ -16,7 +18,7 @@
 typedef struct _HTPair {
     void *value;
     size_t keylen;
-    char *key; // This does not have to be a string
+    u_char *key; // This does not have to be a string
 } HTPair;
 
 
@@ -53,7 +55,7 @@ HashTable *htab_init(void) {
 }
 
 // NOTE: See (https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function)
-static uint64_t fnv1a_hash(char *key, size_t length) {
+static uint64_t fnv1a_hash(const u_char *key, const size_t length) {
     uint64_t hash = 14695981039346656037LU;
     for (int i = 0; i < length; ++i) {
         hash ^= key[i];
@@ -63,13 +65,13 @@ static uint64_t fnv1a_hash(char *key, size_t length) {
 }
 
 
-void htab_put(HashTable *ht, char *key, size_t keylen, void *value) {
+void htab_put(HashTable *ht, const u_char *key, const size_t keylen, void *value) {
     // get index from key
     const uint64_t index = fnv1a_hash(key, keylen) % ht->capacity;
 
     // Check if there's nothing at index
     if (ht->storage[index].value == NULL) {
-        ht->storage[index].key = (char *)malloc(keylen);
+        ht->storage[index].key = (u_char *)malloc(keylen);
         if (ht->storage[index].key == NULL) { // Error checking
             return; // Just return
         }
@@ -92,7 +94,7 @@ void htab_put(HashTable *ht, char *key, size_t keylen, void *value) {
     if (other_index == index) {
         return; // We probably have to resize
     } else {
-        ht->storage[other_index].key = (char *)malloc(keylen);
+        ht->storage[other_index].key = (u_char *)malloc(keylen);
         if (ht->storage[other_index].key == NULL) { // Error checking
             return; // Just return
         }
@@ -109,12 +111,42 @@ void htab_put(HashTable *ht, char *key, size_t keylen, void *value) {
     }
 }
 
+void *htab_see(const HashTable *ht, const u_char *key, const size_t keylen) {
+    // get index from key
+    const uint64_t index = fnv1a_hash(key, keylen) % ht->capacity;
+
+    // Check if value could even exist
+    if (ht->storage[index].value == NULL)
+        return NULL;
+
+    // Check if correct entry is found
+    if (ht->storage[index].keylen == keylen && // Check if keylen is same
+            !memcmp(ht->storage[index].key, key, keylen)) { // Check if key is equal
+        return ht->storage[index].value; // Found correct value so return
+    }
+
+    // Search for other index
+    uint64_t other_index = index + 1;
+    while ((other_index % ht->capacity) != index) {
+        if (ht->storage[other_index].keylen == keylen && // Check if keylen is same
+                !memcmp(ht->storage[other_index].key, key, keylen)) { // Check if key is equal
+            return ht->storage[other_index].value; // Found correct value so return
+        }
+
+        other_index++; // Go to next
+    }
+
+    return NULL;
+}
+
+
 
 void htab_free(HashTable *ht) {
     // Cleanup pairs
-    for (uint32_t i = 0; i < ht->size; ++i) {
-        // free key
-        free(ht->storage[i].key);
+    for (uint64_t i = 0; i < ht->capacity; ++i) {
+        if (ht->storage[i].key) {
+            free(ht->storage[i].key);
+        }
     }
 
     // free storage array
