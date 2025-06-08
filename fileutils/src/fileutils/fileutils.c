@@ -1,7 +1,7 @@
 #define _XOPEN_SOURCE 500 // This is needed for strtok_r
 
 // Header file
-#include "headers/fileutils.h"
+#include "fileutils.h"
 
 
 
@@ -14,8 +14,7 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <unistd.h>
-
-#include "headers/path.h"
+#include "../path/path.h"
 
 
 /// This function creates a the directory speicified

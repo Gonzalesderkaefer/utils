@@ -1,60 +1,39 @@
-# Compiler
+# C Compiler
 CC := gcc
 
-# C-Compiler flags
-CFLAGS := -Wall -Werror
+# Compiler Flags
+CFLAGS :=
 
 # Source directory
 SRCDIR := src
 
-# This is for static libraries and other binaries
+# Builds go here
 BUILDDIR := build
 
-# Here are the used header files
-HEADDIR := src/headers
+# Get all source files
+SOURCES := $(shell find $(SRCDIR) -type f -name *.c)
 
-# This is where the header file and compiled libraries will land
-TARGETDIR := target
+# Derive Object files from source files
+OBJECTS := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.c=.o))
 
-# This is where executables will land
-RUNDIR := run
+# Derive Header files from source files
+HEADERS := $(SOURCES:.c=.h)
 
-# Test directory
-TESTDIR := test
+# Subprojects
+SUBPROCS := subprojects
 
-# Other libraries we intend to use in our code
-LIBRARIES := lib
-
-# Source files
-SRCFILES := $(wildcard src/*.c)
-
-# Addional Object files
-AOBJFILES := $(BUILDDIR)/path.o
-
-# Object files
-OBJFILES := $(patsubst $(SRCDIR)/%.c, $(BUILDDIR)/%.o, $(SRCFILES)) $(AOBJFILES)
-
-# This is the header file that will be provided provided
-HEADER :=
-
-export: $(OBJFILES)
-	ld -r $^ -o $(TARGETDIR)/fileutils.o
-	cp $(HEADDIR)/fileutils.h $(TARGETDIR)/fileutils.h
-
-$(BUILDDIR)/path.o: ../path/Makefile
-	(cd $(shell dirname $<); make export)
-	@cp $(shell dirname $<)/target/path.o $@
-
-test: $(BUILDDIR)/test.o export
-	gcc $(TARGETDIR)/fileutils.o $< -o $(RUNDIR)/test.out
-	$(RUNDIR)/test.out
+export: $(OBJECTS)
+	@echo "Linking $^"
+	@mkdir -p target
+	@ld -r $^ -o target/fileutils.o
+	@for h in $(HEADERS) ; do \
+		cp $$h target/ ; \
+	done
 
 
-# Target for Build files
-$(BUILDDIR)/%.o: $(SRCDIR)/%.c
-	$(CC) $(CFLAGS) -c $< -o $@
 
-
-# Target for test file
-$(BUILDDIR)/test.o: $(TESTDIR)/test.c
+# Default target for source files
+$(BUILDDIR)/%.o: $(SRCDIR)/%.c $(SRCDIR)/%.h
+	@echo "Building $(shell basename $@)"
+	@mkdir -p $(shell dirname $@)
 	$(CC) $(CFLAGS) -c $< -o $@
