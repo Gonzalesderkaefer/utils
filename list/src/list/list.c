@@ -49,10 +49,30 @@ void list_push(List *list, void *value) {
     // use value as a byte stirng
     char *value_bytes = value;
 
-    for (size_t i = 0; i < list->type_size; ++i) {
-        list->storage[list->length * list->type_size + i] = value_bytes[i];
+    if (list->length >= list->capacity) {
+        // Allcoate new storage as bytes
+        char *new_storage = calloc(list->capacity * 2, list->type_size);
+        if (new_storage == NULL) // Error checking
+            return;
+
+        // Copy old bytes into new storage
+        for (size_t i = 0; i < list->length * list->type_size; ++i) {
+            new_storage[i] = list->storage[i];
+        }
+
+        // Free old bytes
+        free(list->storage);
+
+        // Reassign
+        list->storage = new_storage;
+
+        // Update capacity
+        list->capacity *= 2;
     }
-    list->length++;
+        for (size_t i = 0; i < list->type_size; ++i) {
+            list->storage[list->length * list->type_size + i] = value_bytes[i];
+        }
+        list->length++;
 }
 
 
