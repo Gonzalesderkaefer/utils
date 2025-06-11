@@ -24,9 +24,10 @@ typedef struct _ListMetadata {
             __meta_datas__##lst.storage = lst; \
             lst[__meta_datas__##lst.length++] = elem; \
         } \
-    } else { \
-        lst = realloc(lst, __meta_datas__##lst.capacity + 1); \
-        if (lst != NULL) { \
+    } else  { \
+        __meta_datas__##lst.storage = realloc(lst, (__meta_datas__##lst.capacity + 1) * __meta_datas__##lst.elem_size); \
+        if (__meta_datas__##lst.storage != NULL) { \
+            lst = __meta_datas__##lst.storage; \
             __meta_datas__##lst.storage = lst; \
             __meta_datas__##lst.capacity++; \
             lst[__meta_datas__##lst.length++] = elem; \

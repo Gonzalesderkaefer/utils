@@ -72,6 +72,7 @@ void list_push(List *list, void *value) {
         for (size_t i = 0; i < list->type_size; ++i) {
             list->storage[list->length * list->type_size + i] = value_bytes[i];
         }
+
         list->length++;
 }
 

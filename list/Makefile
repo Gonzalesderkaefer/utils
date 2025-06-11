@@ -2,7 +2,7 @@
 CC := gcc
 
 # Compiler Flags
-CFLAGS :=
+CFLAGS := -g
 
 # Source directory
 SRCDIR := src
