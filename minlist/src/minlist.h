@@ -3,6 +3,8 @@
 
 #include <stdlib.h>
 #include <stddef.h>
+#include <string.h>
+
 typedef struct _ListMetadata {
     size_t capacity;
     size_t length;
@@ -28,14 +30,16 @@ typedef struct _ListMetadata {
         lst[__meta_datas__##lst.length++] = elem; \
         __meta_datas__##lst.storage = lst; \
     } else { \
-        __meta_datas__##lst.storage = realloc(lst, (__meta_datas__##lst.capacity + 1) * __meta_datas__##lst.elem_size); \
+        __meta_datas__##lst.storage = malloc((__meta_datas__##lst.capacity * 2) * __meta_datas__##lst.elem_size); \
         if (__meta_datas__##lst.storage != NULL) { \
+            memcpy(__meta_datas__##lst.storage, lst, __meta_datas__##lst.length * __meta_datas__##lst.elem_size); \
+            free(lst); \
             lst = __meta_datas__##lst.storage; \
             __meta_datas__##lst.storage = lst; \
-            __meta_datas__##lst.capacity++; \
+            __meta_datas__##lst.capacity *= 2; \
             lst[__meta_datas__##lst.length++] = elem; \
         } else { \
             __meta_datas__##lst.storage = lst; \
-        } \
+        }\
     }
 #endif // MIN_LIST_H
