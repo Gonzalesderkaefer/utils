@@ -1,4 +1,5 @@
-
+#ifndef MIN_LIST_H
+#define MIN_LIST_H
 
 #include <stdlib.h>
 #include <stddef.h>
@@ -33,3 +34,4 @@ typedef struct _ListMetadata {
             lst[__meta_datas__##lst.length++] = elem; \
         } \
     }
+#endif // MIN_LIST_H
