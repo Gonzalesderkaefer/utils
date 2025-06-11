@@ -8,7 +8,6 @@ typedef struct _ListMetadata {
     size_t length;
     size_t elem_size; 
     void *storage;
-
 } ListMetadata;
 
 
@@ -25,13 +24,18 @@ typedef struct _ListMetadata {
             __meta_datas__##lst.storage = lst; \
             lst[__meta_datas__##lst.length++] = elem; \
         } \
-    } else  { \
+    } else if (__meta_datas__##lst.capacity > __meta_datas__##lst.length) { \
+        lst[__meta_datas__##lst.length++] = elem; \
+        __meta_datas__##lst.storage = lst; \
+    } else { \
         __meta_datas__##lst.storage = realloc(lst, (__meta_datas__##lst.capacity + 1) * __meta_datas__##lst.elem_size); \
         if (__meta_datas__##lst.storage != NULL) { \
             lst = __meta_datas__##lst.storage; \
             __meta_datas__##lst.storage = lst; \
             __meta_datas__##lst.capacity++; \
             lst[__meta_datas__##lst.length++] = elem; \
+        } else { \
+            __meta_datas__##lst.storage = lst; \
         } \
     }
 #endif // MIN_LIST_H
