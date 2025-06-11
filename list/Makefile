@@ -10,6 +10,9 @@ SRCDIR := src
 # Builds go here
 BUILDDIR := build
 
+# This is the export
+TARGETDIR := target
+
 # Get all source files
 SOURCES := $(shell find $(SRCDIR) -type f -name *.c)
 
@@ -28,6 +31,11 @@ SUBPROCS := subprojects
 default: $(OBJECTS)
 	@echo "Linking jazzy.out"
 	$(CC) $^ -o run.out
+
+export: $(OBJECTS)
+	@echo "Exporting .."
+	@mv $< $(TARGETDIR)/list.o
+	@cp $(SRCDIR)/list/list.h $(TARGETDIR)/list.h
 
 
 # Custom recipe for main.c
