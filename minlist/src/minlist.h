@@ -5,15 +5,15 @@
 #include <stddef.h>
 #include <string.h>
 
-typedef struct _ListMetadata {
+typedef struct _ListStats {
     size_t capacity;
     size_t length;
     size_t elem_size; 
     void *storage;
-} ListMetadata;
+} ListStats;
 
 
-#define list_init(lst) ListMetadata __meta_datas__##lst;
+#define list_init(lst) ListStats __meta_datas__##lst
 
 #define list_len(lst) __meta_datas__##lst.length
 
@@ -42,4 +42,27 @@ typedef struct _ListMetadata {
             __meta_datas__##lst.storage = lst; \
         }\
     }
+
+#define list_prealloc(lst, size) if (lst == NULL) { \
+        lst = calloc(size, sizeof(*lst)); \
+        if (lst != NULL) { \
+            __meta_datas__##lst.capacity = size; \
+            __meta_datas__##lst.length = 0; \
+            __meta_datas__##lst.elem_size = sizeof(*lst); \
+            __meta_datas__##lst.storage = lst; \
+        } else {  \
+        __meta_datas__##lst.storage = malloc((__meta_datas__##lst.capacity + size) * __meta_datas__##lst.elem_size); \
+        if (__meta_datas__##lst.storage != NULL) { \
+            memcpy(__meta_datas__##lst.storage, lst, __meta_datas__##lst.length * __meta_datas__##lst.elem_size); \
+            free(lst); \
+            lst = __meta_datas__##lst.storage; \
+            __meta_datas__##lst.storage = lst; \
+            __meta_datas__##lst.capacity += size; \
+        } else { \
+            __meta_datas__##lst.storage = lst; \
+        }\
+    }
+
+#define list_stats(lst) __meta_datas__##lst
+
 #endif // MIN_LIST_H

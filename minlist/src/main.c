@@ -2,10 +2,6 @@
 #include <stdio.h>
 
 
-#define getint(NAM) double doub_##NAM = 2;
-
-
-
 int main(void) {
     int *array = NULL;
 
@@ -15,8 +11,4 @@ int main(void) {
         list_push(array, i);
 
     free(array);
-
-
-
-
 }
