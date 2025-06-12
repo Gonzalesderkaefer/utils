@@ -12,7 +12,6 @@
 #include <sys/types.h>
 
 
-#define INIT_SIZE 16
 
 
 typedef struct _HTPair {
@@ -29,6 +28,7 @@ typedef struct _HashTable {
 } HashTable;
 
 
+void htab_put(HashTable *ht, const u_char *key, const size_t keylen, void *value);
 
 
 HashTable *htab_init(void) {
@@ -47,7 +47,7 @@ HashTable *htab_init(void) {
     }
 
     // Assign rest of the pairs
-    new_ht->capacity = INIT_SIZE;
+    new_ht->capacity = 16;
     new_ht->size = 0;
 
 
@@ -65,12 +65,52 @@ static uint64_t fnv1a_hash(const u_char *key, const size_t length) {
 }
 
 
+
+static void grow(HashTable *ht, size_t new_size) {
+    if (new_size <= ht->size) // Cannot be shrunken
+        return;
+
+    // Allocate new storage
+    HTPair *new_storage = (HTPair *)calloc(new_size, sizeof(HTPair));
+    if (new_storage == NULL) { // Error checking
+        return;
+    }
+
+    // Save reference to to old storage and old size
+    HTPair *old_storage = ht->storage;
+    size_t old_size = ht->size;
+
+    // Assign new storage and new size to ht
+    ht->storage = new_storage;
+    ht->size = new_size;
+
+
+    // Insert old entries into new storage
+    for (size_t i = 0; i < old_size; ++i) {
+        if (old_storage[i].value != NULL) {
+            htab_put(ht, old_storage[i].key, old_storage[i].keylen, old_storage[i].value);
+        }
+    }
+
+
+    // Cleanup old pairs
+    for (size_t i = 0; i < ht->capacity; ++i) {
+        if (ht->storage[i].key) {
+            free(ht->storage[i].key);
+        }
+    }
+
+
+}
+
+
 void htab_put(HashTable *ht, const u_char *key, const size_t keylen, void *value) {
     // get index from key
     const uint64_t index = fnv1a_hash(key, keylen) % ht->capacity;
 
     // Check if there's nothing at index
     if (ht->storage[index].value == NULL) {
+        printf("Insert index is at: %lu for %s\n", index, key);
         ht->storage[index].key = (u_char *)malloc(keylen);
         if (ht->storage[index].key == NULL) { // Error checking
             return; // Just return
@@ -85,14 +125,17 @@ void htab_put(HashTable *ht, const u_char *key, const size_t keylen, void *value
         // Assign keylength
         ht->storage[index].keylen = keylen;
 
-        return;
+        return; 
     }
 
     // If there's something at the index find next index
     uint64_t other_index = index + 1;
     while(ht->storage[other_index++ % ht->capacity].value && other_index != index);
-    if (other_index == index) {
-        return; // We probably have to resize
+
+    printf("Insert index is at: %lu for %s\n", other_index, key);
+    if (other_index == index) { // We have cycled through the list and have to grow
+        puts("Had to grow");
+        //grow(ht, ht->capacity * 2);
     } else {
         ht->storage[other_index].key = (u_char *)malloc(keylen);
         if (ht->storage[other_index].key == NULL) { // Error checking
@@ -122,6 +165,7 @@ void *htab_see(const HashTable *ht, const u_char *key, const size_t keylen) {
     // Check if correct entry is found
     if (ht->storage[index].keylen == keylen && // Check if keylen is same
             !memcmp(ht->storage[index].key, key, keylen)) { // Check if key is equal
+        printf("Lookup index is at: %lu for %s\n", index, key);
         return ht->storage[index].value; // Found correct value so return
     }
 
@@ -130,12 +174,13 @@ void *htab_see(const HashTable *ht, const u_char *key, const size_t keylen) {
     while ((other_index % ht->capacity) != index) {
         if (ht->storage[other_index].keylen == keylen && // Check if keylen is same
                 !memcmp(ht->storage[other_index].key, key, keylen)) { // Check if key is equal
+            printf("Lookup index is at: %lu for %s\n", other_index, key);
             return ht->storage[other_index].value; // Found correct value so return
         }
 
         other_index++; // Go to next
     }
-
+    printf("Key not found.");
     return NULL;
 }
 
