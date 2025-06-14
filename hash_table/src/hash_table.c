@@ -104,6 +104,12 @@ static void grow(HashTable *ht, size_t new_size) {
 }
 
 void htab_put(HashTable *ht, const char *key, const size_t keylen, void *value) {
+    // Sanity check
+    if (ht == NULL || key == NULL || value == NULL) {
+        return;
+    }
+
+
     // get index from key
     const uint64_t index = fnv1a_hash(key, keylen) % ht->capacity;
     printf("Calculated index is at: %lu for %s\n", index, key);
