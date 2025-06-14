@@ -1,4 +1,5 @@
-
+// Header file
+#include "hash_table.h"
 
 // Libraries
 #include <stddef.h>
@@ -99,8 +100,6 @@ static void grow(HashTable *ht, size_t new_size) {
             free(ht->storage[i].key);
         }
     }
-
-
 }
 
 void htab_put(HashTable *ht, const char *key, const size_t keylen, void *value) {
