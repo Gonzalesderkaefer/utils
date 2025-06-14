@@ -37,20 +37,40 @@ int main(void) {
     uint32_t nine = 9;
 
     HashTable *ht = htab_init();
-    htab_put(ht, (u_char *)"zero", strlen("zero"), &zero);
-    htab_put(ht, (u_char *)"one", strlen("one"), &one);
-    htab_put(ht, (u_char *)"two", strlen("two"), &two);
-    htab_put(ht, (u_char *)"three", strlen("three"), &three);
-    htab_put(ht, (u_char *)"four", strlen("four"), &four);
-    htab_put(ht, (u_char *)"five", strlen("five"), &five);
-    htab_put(ht, (u_char *)"six", strlen("six"), &six);
-    htab_put(ht, (u_char *)"seven", strlen("seven"), &seven);
-    htab_put(ht, (u_char *)"eight", strlen("eight"), &eight);
-    htab_put(ht, (u_char *)"nine", strlen("nine"), &nine);
+    htab_put(ht, "zero", strlen("zero"), &zero);
+    puts("");
+    htab_put(ht, "one", strlen("one"), &one);
+    puts("");
+    htab_put(ht, "two", strlen("two"), &two);
+    puts("");
+    htab_put(ht, "three", strlen("three"), &three);
+    puts("");
+    htab_put(ht, "four", strlen("four"), &four);
+    puts("");
+    htab_put(ht, "five", strlen("five"), &five);
+    puts("");
+    htab_put(ht, "six", strlen("six"), &six);
+    puts("");
+    htab_put(ht, "seven", strlen("seven"), &seven);
+    puts("");
+    htab_put(ht, "eight", strlen("eight"), &eight);
+    puts("");
+    htab_put(ht, "nine", strlen("nine"), &nine);
+    puts("");
+    puts("");
+    puts("");
 
-    printf("%d\n", *((int *)htab_see(ht, (u_char *)"one", strlen("one"))));
-    printf("%d\n", *((int *)htab_see(ht, (u_char *)"two", strlen("two"))));
-    //printf("%d\n", *((int *)htab_see(ht, (u_char *)"three", strlen("three"))));
+
+    printf("%d\n", *(int *)htab_see(ht, "zero", strlen("zero")));
+    printf("%d\n", *(int *)htab_see(ht, "one", strlen("one")));
+    printf("%d\n", *(int *)htab_see(ht, "two", strlen("two")));
+    printf("%d\n", *(int *)htab_see(ht, "three", strlen("three")));
+    printf("%d\n", *(int *)htab_see(ht, "four", strlen("four")));
+    printf("%d\n", *(int *)htab_see(ht, "five", strlen("five")));
+    printf("%d\n", *(int *)htab_see(ht, "six", strlen("six")));
+    printf("%d\n", *(int *)htab_see(ht, "seven", strlen("seven")));
+    printf("%d\n", *(int *)htab_see(ht, "eight", strlen("eight")));
+    printf("%d\n", *(int *)htab_see(ht, "nine", strlen("nine")));
 
     htab_free(ht);
 }

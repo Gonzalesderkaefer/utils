@@ -17,7 +17,7 @@
 typedef struct _HTPair {
     void *value;
     size_t keylen;
-    u_char *key; // This does not have to be a string
+    char *key; // This does not have to be a string
 } HTPair;
 
 
@@ -28,7 +28,7 @@ typedef struct _HashTable {
 } HashTable;
 
 
-void htab_put(HashTable *ht, const u_char *key, const size_t keylen, void *value);
+void htab_put(HashTable *ht, const char *key, const size_t keylen, void *value);
 
 
 HashTable *htab_init(void) {
@@ -55,7 +55,7 @@ HashTable *htab_init(void) {
 }
 
 // NOTE: See (https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function)
-static uint64_t fnv1a_hash(const u_char *key, const size_t length) {
+static uint64_t fnv1a_hash(const char *key, const size_t length) {
     uint64_t hash = 14695981039346656037LU;
     for (int i = 0; i < length; ++i) {
         hash ^= key[i];
@@ -103,15 +103,15 @@ static void grow(HashTable *ht, size_t new_size) {
 
 }
 
-
-void htab_put(HashTable *ht, const u_char *key, const size_t keylen, void *value) {
+void htab_put(HashTable *ht, const char *key, const size_t keylen, void *value) {
     // get index from key
     const uint64_t index = fnv1a_hash(key, keylen) % ht->capacity;
+    printf("Calculated index is at: %lu for %s\n", index, key);
 
     // Check if there's nothing at index
     if (ht->storage[index].value == NULL) {
         printf("Insert index is at: %lu for %s\n", index, key);
-        ht->storage[index].key = (u_char *)malloc(keylen);
+        ht->storage[index].key = malloc(keylen);
         if (ht->storage[index].key == NULL) { // Error checking
             return; // Just return
         }
@@ -130,20 +130,28 @@ void htab_put(HashTable *ht, const u_char *key, const size_t keylen, void *value
 
     // If there's something at the index find next index
     uint64_t other_index = index + 1;
-    while(ht->storage[other_index++ % ht->capacity].value && other_index != index);
+    while((other_index % ht->capacity) != index) {
+        if (ht->storage[other_index % ht->capacity].keylen == 0) {
+            printf("Found empty slot at: %lu\n", other_index);
+            break;
+        } else {
+            printf("Slot was occupied keep going: %lu\n", other_index);
+            other_index += 1;
+        }
+    }
 
     printf("Insert index is at: %lu for %s\n", other_index, key);
     if (other_index == index) { // We have cycled through the list and have to grow
         puts("Had to grow");
         //grow(ht, ht->capacity * 2);
     } else {
-        ht->storage[other_index].key = (u_char *)malloc(keylen);
+        ht->storage[other_index].key = malloc(keylen);
         if (ht->storage[other_index].key == NULL) { // Error checking
             return; // Just return
         }
 
         // Copy key into buffer
-        ht->storage[other_index].key = memcpy(ht->storage[index].key, key, keylen);
+        memcpy(ht->storage[other_index].key, key, keylen);
 
         // Assign value
         ht->storage[other_index].value = value;
@@ -154,9 +162,10 @@ void htab_put(HashTable *ht, const u_char *key, const size_t keylen, void *value
     }
 }
 
-void *htab_see(const HashTable *ht, const u_char *key, const size_t keylen) {
+void *htab_see(const HashTable *ht, const char *key, const size_t keylen) {
     // get index from key
     const uint64_t index = fnv1a_hash(key, keylen) % ht->capacity;
+    printf("Calculated index is at: %lu for %s\n", index, key);
 
     // Check if value could even exist
     if (ht->storage[index].value == NULL)
@@ -168,19 +177,20 @@ void *htab_see(const HashTable *ht, const u_char *key, const size_t keylen) {
         printf("Lookup index is at: %lu for %s\n", index, key);
         return ht->storage[index].value; // Found correct value so return
     }
-
     // Search for other index
     uint64_t other_index = index + 1;
-    while ((other_index % ht->capacity) != index) {
+    while((other_index % ht->capacity) != index) {
+        printf("Lookup index is at: %lu \n", other_index);
         if (ht->storage[other_index].keylen == keylen && // Check if keylen is same
-                !memcmp(ht->storage[other_index].key, key, keylen)) { // Check if key is equal
-            printf("Lookup index is at: %lu for %s\n", other_index, key);
+                memcmp(ht->storage[other_index].key, key, keylen) == 0) { // Check if key is equal
+            printf("Found at %lu\n", other_index);
             return ht->storage[other_index].value; // Found correct value so return
+        } else {
+            printf("Key not found at %lu\n", other_index);
+            other_index++;
         }
-
-        other_index++; // Go to next
     }
-    printf("Key not found.");
+    printf("Key not found.\n");
     return NULL;
 }
 
@@ -189,7 +199,8 @@ void *htab_see(const HashTable *ht, const u_char *key, const size_t keylen) {
 void htab_free(HashTable *ht) {
     // Cleanup pairs
     for (uint64_t i = 0; i < ht->capacity; ++i) {
-        if (ht->storage[i].key) {
+        if (ht->storage[i].keylen != 0) {
+            //printf("Free: %p\n", ht->storage[i].key);
             free(ht->storage[i].key);
         }
     }
