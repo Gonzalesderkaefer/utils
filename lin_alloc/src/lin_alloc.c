@@ -19,6 +19,7 @@ typedef struct _Block{
     void *pos;
     void *endpos;
     Block *next;
+    Block *prev;
 } Block;
 
 
@@ -39,6 +40,7 @@ static Block *blk_init() {
     // Assign values
     new_block->memory = new_memory;
     new_block->next = NULL;
+    new_block->prev = NULL;
     new_block->pos = new_memory;
     new_block->endpos = new_memory + blocksize;
 
@@ -46,8 +48,33 @@ static Block *blk_init() {
     return new_block;
 }
 
+static Block *blk_init_sized(size_t size) {
+    // Allocate Block struct
+    Block *new_block = malloc(sizeof(Block));
+    if (new_block == NULL) {
+        return new_block;
+    }
 
-static void block_free(Block *blk) {
+    // Allocate memory
+    void *new_memory = malloc(size);
+    if (new_memory == NULL) {
+        free(new_block);
+        return NULL;
+    }
+
+    // Assign values
+    new_block->memory = new_memory;
+    new_block->next = NULL;
+    new_block->prev = NULL;
+    new_block->pos = new_memory;
+    new_block->endpos = new_memory + size;
+
+
+    return new_block;
+}
+
+
+static void blk_free(Block *blk) {
     // NULL check
     if (blk == NULL) return;
 
@@ -114,26 +141,68 @@ LinAlloc *linear_init() {
 }
 
 
-void *lalloc(LinAlloc *linear_alloc, size_t size) {
-    Block *cur_blk = linear_alloc->current; 
-    assert(cur_blk != NULL); // This cannot be null
-    void *ptr = NULL;
-    while ((ptr = blk_alloc(cur_blk, size, false)) == NULL) {
-        // Allocate new block
-        Block *new_block = blk_init();
-        if (new_block == NULL) {
+void *lalloc(LinAlloc *linear_alloc, size_t size){
+    // NULL check
+    if (linear_alloc == NULL) {
+        return NULL;
+    }
+
+    // Get current block
+    Block *cur_blk = linear_alloc->current;
+
+    // Check if custom block needs to be allocated
+    if (size > blocksize) {
+        Block *new_blk = blk_init_sized(size);
+        if (new_blk != NULL) {
             return NULL;
         }
 
-        // Set next block to new_block
-        cur_blk->next = new_block;
+        // Get new pointer
+        void *to_return = blk_alloc(new_blk, size, false);
+        if (to_return == NULL) {
+            return NULL;
+        }
 
-        // 'increment' cur_blk
-        cur_blk = cur_blk->next;
+        // Make new block predecessor of cur_blk;
+        new_blk->next = cur_blk;
+        new_blk->prev = cur_blk->prev;
+        cur_blk->prev = new_blk;
 
-        // Set next cur blk
-        linear_alloc->current = cur_blk;
+        return to_return;
+    } else {
+        void *ptr = blk_alloc(cur_blk, size, false);
+        if (ptr == NULL) {
+            // Allocate new block
+            Block *new_blk = blk_init();
+            if (new_blk == NULL) {
+                return NULL;
+            }
+            // Allocate in block
+            ptr = blk_alloc(new_blk, size, false);
+            assert(new_blk != NULL); // This must work
+
+            // Set next and prev refs accordingly
+            new_blk->prev = cur_blk;
+            cur_blk->next = new_blk;
+        }
+        return ptr;
     }
-    return ptr;
 }
 
+
+
+void lfree(LinAlloc *linear_alloc) {
+
+    Block *cur_blk = linear_alloc->first;
+    Block *next_blk = NULL;
+    while (cur_blk != NULL) {
+        // Store next block
+        next_blk = cur_blk->next;
+        // free block
+        blk_free(cur_blk);
+        // Assign it to cur_blk
+        cur_blk = next_blk;
+    }
+
+    free(linear_alloc);
+}
