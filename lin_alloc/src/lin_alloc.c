@@ -111,40 +111,17 @@ static void *blk_alloc(Block *blk, const size_t size, bool zero) {
 
 
 /******************* Linear Allocator implementation *******************/
-typedef struct _LinAlloc {
-    Block *first;
-    Block *current;
-} LinAlloc;
-
-
-
-LinAlloc *linear_init() {
-    // Allocate struct
-    LinAlloc *new_linear = malloc(sizeof(LinAlloc));
-    if (new_linear == NULL) {
-        return NULL;
-    }
-
-    // Allocate first block
-    Block *new_block = blk_init();
-    if (new_block == NULL) {
-        free(new_linear);
-        return NULL;
-    }
-
-    // Assign nodes
-    new_linear->first = new_block;
-    new_linear->current = new_block;
-
-
-    return new_linear;
-}
-
-
 void *lalloc(LinAlloc *linear_alloc, size_t size){
-    // NULL check
-    if (linear_alloc == NULL) {
-        return NULL;
+    // Allocate first block if needed
+    if (linear_alloc->first == NULL) {
+        Block *new_block = blk_init();
+        if (new_block == NULL) {
+            return NULL;
+        }
+
+        // Assign to struct
+        linear_alloc->first = new_block;
+        linear_alloc->current = new_block;
     }
 
     // Get current block
@@ -203,6 +180,6 @@ void lfree(LinAlloc *linear_alloc) {
         // Assign it to cur_blk
         cur_blk = next_blk;
     }
-
-    free(linear_alloc);
+    linear_alloc->current = NULL;
+    linear_alloc->first = NULL;
 }

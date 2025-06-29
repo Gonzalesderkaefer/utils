@@ -24,7 +24,11 @@ SUBPROCS := subprojects
 
 default: $(OBJECTS)
 
+test: $(OBJECTS)
+	$(CC) $(CFLAGS) $^ -o run/test.out
 
+$(BUILDDIR)/test.o: $(SRCDIR)/test.c
+	$(CC) $(CFLAGS) -c $< -o $@
 
 # Default target for source files
 $(BUILDDIR)/%.o: $(SRCDIR)/%.c $(SRCDIR)/%.h
