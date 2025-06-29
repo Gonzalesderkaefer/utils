@@ -5,8 +5,6 @@
 #include <stdbool.h>
 #include <string.h>
 
-/// Block is 16MiB in size 
-#define blocksize 16777216
 
 
 

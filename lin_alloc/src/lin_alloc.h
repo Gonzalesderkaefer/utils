@@ -3,6 +3,33 @@
 // Libraries
 #include <stddef.h>
 
+/// Block is 16MiB in size by default if not definded otherwise
+#ifndef blocksize
+#define blocksize 16777216
+#endif
+
+/// These macros should make using the allocators easier
+
+/// This initializes the macro interface for the linear allocators
+#define lin_init() \
+    static LinAlloc glob_mem = {0}; \
+    static LinAlloc *cur_mem = &glob_mem;
+
+
+/// create a new allocator to use
+#define lin_switch(new_allocator) \
+    LinAlloc new_allocator = {0}; \
+    cur_mem = &new_allocator;
+
+/// Free used allocator and assign current allocator
+/// back
+#define lin_free(new_allocator) \
+    lfree(&new_allocator);\
+    cur_mem = &glob_mem;
+
+
+
+
 /// This struct represents a region of memeory
 typedef struct _Block Block;
 

@@ -1,19 +1,30 @@
 #include "lin_alloc.h"
+#include <stdio.h>
 
 
 
+lin_init();
 
-LinAlloc glob_mem = {0};
 
-#define talloc(size) lalloc(&glob_mem, size)
+void *this_alloc(size_t size){
+    return lalloc(cur_mem, size);
+}
+
+void this_free(void *ptr){}
+
 
 int main(void) {
-    talloc(33);
-    talloc(33);
-    talloc(33);
-    talloc(33);
-    talloc(33);
-    talloc(33);
-
-    lfree(&glob_mem);
+    lin_switch(main_mem);
+    lin_free(main_mem);
 }
+
+
+
+
+
+
+
+
+
+
+
