@@ -2,7 +2,7 @@
 CC := gcc
 
 # Compiler Flags
-CFLAGS := -Werror -Wall -g
+CFLAGS := -Werror -Wall
 
 # Source directory
 SRCDIR := src
@@ -22,10 +22,21 @@ HEADERS := $(SOURCES:.c=.h)
 # Subprojects
 SUBPROCS := subprojects
 
-default: $(OBJECTS)
+# Export
+export: $(OBJECTS)
+	mkdir target
+	cp $(SRCDIR)/lin_alloc.h target/lin_alloc.h
+	cp $(BUILDDIR)/lin_alloc.o target/lin_alloc.o
+
 
 test: $(OBJECTS)
 	$(CC) $(CFLAGS) $^ -o run/test.out
+
+# Cleanup all built files
+clean:
+	rm -rf build
+	rm -rf target
+
 
 $(BUILDDIR)/test.o: $(SRCDIR)/test.c
 	$(CC) $(CFLAGS) -c $< -o $@
