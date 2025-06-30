@@ -1,3 +1,6 @@
+// Libraries 
+#include <sys/types.h>
+
 /// ## Path
 /// This struct is a String type that
 /// can be used to work with filepaths.
@@ -5,10 +8,18 @@
 /// easier
 typedef struct _Path  Path;
 
+/// ## path_alloc()
+/// This function initializes a `Path`
+/// with the provided allocator and deallocator
+/// that initially holds the value of initval
+/// it returns a pointer to a `Path`
+/// on success.
+/// On failure it returns NULL
+Path *path_init_alloc(const char *initval, void *(*alloc) (size_t), void (*dealloc) (void *));
 
 /// ## path_init()
 /// This function initializes a `Path`
-/// that initially holds the value of
+/// that initially holds the value of initval
 /// it returns a pointer to a `Path`
 /// on success.
 /// On failure it returns NULL
