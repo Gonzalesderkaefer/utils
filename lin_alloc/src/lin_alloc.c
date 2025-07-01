@@ -1,5 +1,7 @@
 // Header file
 #include "lin_alloc.h"
+
+// Libraries
 #include <stdlib.h>
 #include <assert.h>
 #include <stdbool.h>
@@ -108,7 +110,7 @@ static void *blk_alloc(Block *blk, const size_t size, bool zero) {
 
 
 
-/******************* Linear Allocator implementation *******************/
+/********************* Linear Allocator implementation **********************/
 void *lalloc(LinAlloc *linear_alloc, size_t size){
     // Allocate first block if needed
     if (linear_alloc->first == NULL) {
