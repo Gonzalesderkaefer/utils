@@ -112,14 +112,19 @@ static void *blk_alloc(Block *blk, const size_t size, bool zero) {
 void *lalloc(LinAlloc *linear_alloc, size_t size){
     // Allocate first block if needed
     if (linear_alloc->first == NULL) {
-        Block *new_block = blk_init();
-        if (new_block == NULL) {
-            return NULL;
+        Block new_block;
+        if (size > blocksize) {
+            new_block = blk_init_sized(size);
+        } else {
+            new_block = blk_init();
         }
+            if (new_block == NULL) {
+                return NULL;
+            }
 
-        // Assign to struct
-        linear_alloc->first = new_block;
-        linear_alloc->current = new_block;
+            // Assign to struct
+            linear_alloc->first = new_block;
+            linear_alloc->current = new_block;
     }
 
     // Get current block
