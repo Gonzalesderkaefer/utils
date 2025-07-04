@@ -10,6 +10,13 @@
 
 /// These macros should make using the allocators easier
 
+
+/// This initializes the macro interface for the linear allocators
+#define glob_lin_init() \
+    LinAlloc glob_mem = {0}; \
+    LinAlloc *cur_mem = &glob_mem;
+
+
 /// This initializes the macro interface for the linear allocators
 #define lin_init() \
     static LinAlloc glob_mem = {0}; \
