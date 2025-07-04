@@ -114,7 +114,13 @@ static void *blk_alloc(Block *blk, const size_t size, bool zero) {
 void *lalloc(LinAlloc *linear_alloc, size_t size){
     // Allocate first block if needed
     if (linear_alloc->first == NULL) {
-        Block *new_block = blk_init();
+        Block *new_block;
+        if (size > blocksize) {
+            new_block = blk_init_sized(size);
+        } else {
+            new_block = blk_init();
+        }
+
         if (new_block == NULL) {
             return NULL;
         }
@@ -135,17 +141,17 @@ void *lalloc(LinAlloc *linear_alloc, size_t size){
         }
 
         // Get new pointer
-        void *to_return = blk_alloc(new_blk, size, false);
-        if (to_return == NULL) {
+        void *ptr = blk_alloc(new_blk, size, false);
+        if (ptr == NULL) {
             return NULL;
         }
 
-        // Make new block predecessor of cur_blk;
+        // Make new block the predecessor of cur_blk;
         new_blk->next = cur_blk;
         new_blk->prev = cur_blk->prev;
         cur_blk->prev = new_blk;
 
-        return to_return;
+        return ptr;
     } else {
         void *ptr = blk_alloc(cur_blk, size, false);
         if (ptr == NULL) {
