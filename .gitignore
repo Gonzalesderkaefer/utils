@@ -53,5 +53,5 @@ dkms.conf
 
 
 # Keep thirdparty
-!/*thirdparty*
+!*/thirdparty/*
 
