@@ -147,8 +147,7 @@ void htab_put(HashTable *ht, const char *key, const size_t keylen, void *value) 
 
     printf("Insert index is at: %lu for %s\n", other_index, key);
     if (other_index == index) { // We have cycled through the list and have to grow
-        puts("Had to grow");
-        //grow(ht, ht->capacity * 2);
+        grow(ht, ht->capacity * 2);
     } else {
         ht->storage[other_index].key = malloc(keylen);
         if (ht->storage[other_index].key == NULL) { // Error checking

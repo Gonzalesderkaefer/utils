@@ -205,6 +205,7 @@ int copy_r(const char *srcdir, const char *destdir) {
 
 
 char **fs_walk(const char *directory) {
+    return NULL;
 }
 
 
