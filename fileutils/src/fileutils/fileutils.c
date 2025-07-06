@@ -14,6 +14,7 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <assert.h>
 #include "../path/path.h"
 
 
@@ -199,3 +200,13 @@ int copy_r(const char *srcdir, const char *destdir) {
     closedir(source_dir);
     return 0; 
 }
+
+
+
+
+char **fs_walk(const char *directory) {
+}
+
+
+
+
