@@ -16,9 +16,6 @@ LIBDIR := lib
 # Static libraries
 STATLIB := $(shell find $(LIBDIR)  -depth -maxdepth 1 -type f -name *.a)
 
-# Object files that were in static libraries
-STATOBJ := $(shell find $(LIBDIR)  -depth -maxdepth 1 -type f -name *.o)
-
 # Combined static library
 COMBLIB := $(LIBDIR)/lib$(PRJNAME).a
 
@@ -44,7 +41,7 @@ TARDIR := target
 export: $(OBJECTS)
 	@echo "Linking $^"
 	@mkdir -p target
-	@ar rcs $(TARDIR)/libutils.a
+	@ar rcs $(TARDIR)/libutils.a $(OBJECTS)
 	@for h in $(HEADERS) ; do \
 		cp $$h target/ ; \
 	done
