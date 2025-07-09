@@ -34,9 +34,9 @@ Path *path_init_alloc(const char *initval, void *(*alloc) (size_t bytes), void (
     size_t new_len; // length of new buffer
     if (strlen(initval) == 0) { // special case if initial value is empty 
         new_len = 1;
-        new_buf = (char *)malloc(2); // Allocate buffer with length 2 for '/' and NUL
+        new_buf = (char *)alloc(2); // Allocate buffer with length 2 for '/' and NUL
 
-        if (!new_buf) // Error check
+        if (new_buf == NULL) // Error check
             return NULL;
 
         snprintf(new_buf, 2,"/"); // Write empty string to buffer
@@ -44,26 +44,26 @@ Path *path_init_alloc(const char *initval, void *(*alloc) (size_t bytes), void (
 
     } else if (*initval == '/') { // Check if initval starts with '/'
         new_len = strlen(initval) + 1; // Store length
-        new_buf = (char *)malloc(strlen(initval) + 1); // Allocate buffer
+        new_buf = (char *)alloc(strlen(initval) + 1); // Allocate buffer
 
-        if (!new_buf) // Error check
+        if (new_buf == NULL) // Error check
             return NULL;
 
         snprintf(new_buf, new_len, "%s", initval); // write initval to buffer
     } else { // Initval starts without '/' so have to append it
         new_len = strlen(initval) + 2; // Store length
-        new_buf = (char *)malloc(strlen(initval) + 2); // Allocate buffer
+        new_buf = (char *)alloc(strlen(initval) + 2); // Allocate buffer
 
-        if (!new_buf) // Error check
+        if (new_buf == NULL) // Error check
             return NULL;
 
         snprintf(new_buf, new_len, "/%s", initval); // write initval to buffer
                                                   // prepended with a '/'
     }
 
-    char *parbuf = (char *)malloc(new_len); // Allocate partent buffer
-    if (!parbuf) { // Error check
-        free((void *)new_buf); // We have to free this
+    char *parbuf = (char *)alloc(new_len); // Allocate partent buffer
+    if (parbuf == NULL) { // Error check
+        dealloc((void *)new_buf); // We have to free this
         return NULL;
     }
     snprintf(parbuf, new_len, "%s", new_buf); // Copy into parentbuf
@@ -77,10 +77,10 @@ Path *path_init_alloc(const char *initval, void *(*alloc) (size_t bytes), void (
     char *basename = strrchr(parbuf, '/'); // Find where base name starts
     *(basename++) = '\0'; // cut off the parent there
 
-    Path *newpath = (Path *)malloc(sizeof(Path)); // Allocate Path struct
+    Path *newpath = (Path *)alloc(sizeof(Path)); // Allocate Path struct
     if (!newpath) {
-        free(new_buf); // We have to free these
-        free(parbuf);
+        dealloc(new_buf); // We have to free these
+        dealloc(parbuf);
         return NULL;
     }
 
