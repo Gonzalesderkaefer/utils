@@ -25,6 +25,11 @@ Path *path_init_alloc(const char *initval, void *(*alloc) (size_t), void (*deall
 /// On failure it returns NULL
 Path *path_init(const char *initval);
 
+/// ## path_append_to_base()
+/// This function appends `appendix` to the base of `path`
+/// as a new filepath component
+void path_append_to_base(Path *path, const char *appendix);
+
 /// ## path_append()
 /// This function appends `appendix` to `path`
 /// as a new filepath component

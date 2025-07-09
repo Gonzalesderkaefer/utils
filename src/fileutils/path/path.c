@@ -75,7 +75,10 @@ Path *path_init_alloc(const char *initval, void *(*alloc) (size_t bytes), void (
 
 
     char *basename = strrchr(parbuf, '/'); // Find where base name starts
-    *(basename++) = '\0'; // cut off the parent there
+    // If there's a basename
+    if (basename != NULL) {
+        *(basename++) = '\0'; // cut off the parent there
+    }
 
     Path *newpath = (Path *)alloc(sizeof(Path)); // Allocate Path struct
     if (!newpath) {
@@ -173,6 +176,70 @@ Path *path_init(const char *initval) {
     return newpath;
 }
 
+void path_append_to_base(Path *path, const char *appendix) {
+    // Check if path is complete
+    if (!path || !path->alloc || !path->dealloc || 
+            !path->basename || !path->buf || !path->buflen || !path->parent)
+        return;
+
+    // No slash at beginning of appendix allowed
+    if (*appendix == '/')
+        return;
+
+    // Get the last char of the buffer
+    char lastchar = path->buf[path->buflen - 2];
+
+    // length of the new buffer
+    size_t newlen;
+    if (lastchar != '/') { // If there's a '/' we don't need the extra character
+        newlen = path->buflen + strlen(appendix);
+    } else {
+        newlen = path->buflen + strlen(appendix) + 1;
+    }
+
+    // Allocate new main buffer
+    char *newbuf = (char *)path->alloc(newlen);
+    if (newbuf == NULL) {
+        return;
+    }
+
+    // Allocate new parent buffer
+    char *parbuf = (char *)path->alloc(newlen);
+    if (parbuf == NULL) {
+        path->dealloc(newbuf); // We have to free this...
+        return;
+    }
+
+    if (lastchar == '/') { // If the buffer ended with '/' don't add the '/' in between
+        // Write into new main buffer
+        snprintf(newbuf, newlen, "%s%s", path->buf, appendix);
+    } else {
+        // Write into new main buffer
+        snprintf(newbuf, newlen, "%s%s/", path->buf, appendix);
+    }
+
+    // Write into new parent buffer
+    snprintf(parbuf, newlen, "%s%s", path->buf, appendix);
+
+    // Find last slash
+    char *basename = strrchr(parbuf, '/');
+    if (basename != NULL) { // For now return if no last '/' was found
+        *(basename++) = '\0';
+    }
+
+    // Free old buffers
+    path->dealloc((void *)path->buf);
+    path->dealloc((void *)path->parent);
+
+
+    // Reassign
+    path->buf = newbuf;
+    path->parent = parbuf;
+    path->buflen = newlen;
+    path->basename = basename;
+
+
+}
 
 void path_append(Path *path, const char *appendix) {
     // Check if path is complete
@@ -198,12 +265,12 @@ void path_append(Path *path, const char *appendix) {
 
     // Allocate new main buffer
     char *newbuf = (char *)path->alloc(newlen);
-    if (!newbuf)
+    if (newbuf == NULL)
         return;
 
     // Allocate new parent buffer
     char *parbuf = (char *)path->alloc(newlen);
-    if (!parbuf) {
+    if (parbuf == NULL) {
         path->dealloc(newbuf); // We have to free this...
         return;
     }
@@ -230,12 +297,9 @@ void path_append(Path *path, const char *appendix) {
 
     // Find last slash
     char *basename = strrchr(parbuf, '/');
-    if (!basename) { // For now return if no last '/' was found
-        path->dealloc(newbuf); // We have to free these
-        path->dealloc(parbuf); // We have to free these
-        return;
+    if (basename != NULL) { // For now return if no last '/' was found
+        *(basename++) = '\0';
     }
-    *(basename++) = '\0';
 
     // Free old buffers
     path->dealloc((void *)path->buf);
