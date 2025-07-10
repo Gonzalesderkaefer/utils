@@ -5,7 +5,7 @@ PRJNAME := utils
 CC := cc
 
 # Compile flags
-CFLAGS := -Werror -Wall -std=c99
+CFLAGS := -Werror -Wall -std=c99 -g
 
 # Source directory
 SRCDIR := src
@@ -37,18 +37,20 @@ HEADERS := $(SOURCES:.c=.h)
 # Export dir
 TARDIR := target
 
+test: export
+	@$(CC) $(CFLAGS) -c test/test.c -o $(BUILDDIR)/test.o
+	@$(CC) $(CFLAGS) $(OBJECTS) $(BUILDDIR)/test.o $(LFLAGS) -o run.out
+
 
 export: $(OBJECTS)
 	@echo "Linking $^"
 	@mkdir -p target
-	@ar rcs $(TARDIR)/libutils.a $(OBJECTS)
+	@ar rcs $(LIBDIR)/libutils.a $(OBJECTS)
+	@cp $(LIBDIR)/libutils.a $(TARDIR)/
 	@for h in $(HEADERS) ; do \
 		cp $$h target/ ; \
 	done
 
-
-# Default target
-default: $(COMBLIB)
 
 
 # Default target to create a combined static library

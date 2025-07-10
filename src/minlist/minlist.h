@@ -13,56 +13,70 @@ typedef struct _ListStats {
 } ListStats;
 
 
-#define list_init(lst) ListStats __meta_datas__##lst
+#define list_init(lst) ListStats list_stats##lst
 
-#define list_len(lst) __meta_datas__##lst.length
+#define list_len(lst) list_stats##lst.length
 
 #define list_push(lst, elem) if (lst == NULL) { \
         lst = calloc(1, sizeof(*lst)); \
         if (lst != NULL) { \
-            __meta_datas__##lst.capacity = 5; \
-            __meta_datas__##lst.length = 0; \
-            __meta_datas__##lst.elem_size = sizeof(*lst); \
-            __meta_datas__##lst.storage = lst; \
-            lst[__meta_datas__##lst.length++] = elem; \
+            list_stats##lst.capacity = 5; \
+            list_stats##lst.length = 0; \
+            list_stats##lst.elem_size = sizeof(*lst); \
+            list_stats##lst.storage = lst; \
+            lst[list_stats##lst.length++] = elem; \
         } \
-    } else if (__meta_datas__##lst.capacity > __meta_datas__##lst.length) { \
-        lst[__meta_datas__##lst.length++] = elem; \
-        __meta_datas__##lst.storage = lst; \
+    } else if (list_stats##lst.capacity > list_stats##lst.length) { \
+        lst[list_stats##lst.length++] = elem; \
+        list_stats##lst.storage = lst; \
     } else { \
-        __meta_datas__##lst.storage = malloc((__meta_datas__##lst.capacity * 2) * __meta_datas__##lst.elem_size); \
-        if (__meta_datas__##lst.storage != NULL) { \
-            memcpy(__meta_datas__##lst.storage, lst, __meta_datas__##lst.length * __meta_datas__##lst.elem_size); \
+        list_stats##lst.storage = malloc((list_stats##lst.capacity * 2) * list_stats##lst.elem_size); \
+        if (list_stats##lst.storage != NULL) { \
+            memcpy(list_stats##lst.storage, lst, list_stats##lst.length * list_stats##lst.elem_size); \
             free(lst); \
-            lst = __meta_datas__##lst.storage; \
-            __meta_datas__##lst.storage = lst; \
-            __meta_datas__##lst.capacity *= 2; \
-            lst[__meta_datas__##lst.length++] = elem; \
+            lst = list_stats##lst.storage; \
+            list_stats##lst.storage = lst; \
+            list_stats##lst.capacity *= 2; \
+            lst[list_stats##lst.length++] = elem; \
         } else { \
-            __meta_datas__##lst.storage = lst; \
+            list_stats##lst.storage = lst; \
         }\
     }
 
 #define list_prealloc(lst, size) if (lst == NULL) { \
         lst = calloc(size, sizeof(*lst)); \
         if (lst != NULL) { \
-            __meta_datas__##lst.capacity = size; \
-            __meta_datas__##lst.length = 0; \
-            __meta_datas__##lst.elem_size = sizeof(*lst); \
-            __meta_datas__##lst.storage = lst; \
+            list_stats##lst.capacity = size; \
+            list_stats##lst.length = 0; \
+            list_stats##lst.elem_size = sizeof(*lst); \
+            list_stats##lst.storage = lst; \
         } else {  \
-        __meta_datas__##lst.storage = malloc((__meta_datas__##lst.capacity + size) * __meta_datas__##lst.elem_size); \
-        if (__meta_datas__##lst.storage != NULL) { \
-            memcpy(__meta_datas__##lst.storage, lst, __meta_datas__##lst.length * __meta_datas__##lst.elem_size); \
+        list_stats##lst.storage = malloc((list_stats##lst.capacity + size) * list_stats##lst.elem_size); \
+        if (list_stats##lst.storage != NULL) { \
+            memcpy(list_stats##lst.storage, lst, list_stats##lst.length * list_stats##lst.elem_size); \
             free(lst); \
-            lst = __meta_datas__##lst.storage; \
-            __meta_datas__##lst.storage = lst; \
-            __meta_datas__##lst.capacity += size; \
+            lst = list_stats##lst.storage; \
+            list_stats##lst.storage = lst; \
+            list_stats##lst.capacity += size; \
         } else { \
-            __meta_datas__##lst.storage = lst; \
+            list_stats##lst.storage = lst; \
         }\
     }
 
-#define list_stats(lst) __meta_datas__##lst
+#define list_stats(lst) list_stats##lst
+
+#define list_action(lst, fn) \
+    for (int i = 0; i < list_stats##lst.length; ++i) { \
+        fn(lst[i]); \
+    } \
+
+#define list_from_stats(stats, lst) \
+    lst = stats.storage; \
+    ListStats list_stats##lst = stats;
+
+
+
+
+
 
 #endif // MIN_LIST_H
