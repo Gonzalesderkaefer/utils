@@ -13,7 +13,7 @@ typedef struct _HashTable HashTable;
 
 
 /// This function initializes a `HashTable` and returns a handle to it.
-HashTable *htab_init(void);
+HashTable *htab_init(void *(*alloc)(size_t), void (*dealloc)(void *));
 
 
 /// This function insert the address pointed to by `value` into the HashTable.

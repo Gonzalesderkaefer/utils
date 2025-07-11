@@ -26,30 +26,32 @@ typedef struct _HashTable {
     HTPair *storage;
     size_t capacity;
     size_t size;
+    void *(*alloc)(size_t);
+    void (*dealloc)(void *);
 } HashTable;
 
 
-void htab_put(HashTable *ht, const char *key, const size_t keylen, void *value);
-
-
-HashTable *htab_init(void) {
+HashTable *htab_init(void *(*alloc)(size_t), void (*dealloc)(void *)) {
     // Allocate HashTable struct
-    HashTable *new_ht = (HashTable *)malloc(sizeof(HashTable));
+    HashTable *new_ht = (HashTable *)alloc(sizeof(HashTable));
     if (new_ht == NULL) { // Error checking
         return NULL;
     }
 
 
     // Allocate Array of pairs
-    new_ht->storage = (HTPair *)calloc(16, sizeof(HTPair));
+    new_ht->storage = (HTPair *)alloc(16 * sizeof(HTPair));
     if (new_ht->storage == NULL) { // Error checking
-        free(new_ht); // We have to free this ...
+        dealloc(new_ht); // We have to free this ...
         return NULL;
     }
+    memset(new_ht->storage, 0, 16 * sizeof(HTPair));
 
     // Assign rest of the pairs
     new_ht->capacity = 16;
     new_ht->size = 0;
+    new_ht->alloc = alloc;
+    new_ht->dealloc = dealloc;
 
 
     return new_ht;
@@ -72,10 +74,11 @@ static void grow(HashTable *ht, size_t new_size) {
         return;
 
     // Allocate new storage
-    HTPair *new_storage = (HTPair *)calloc(new_size, sizeof(HTPair));
+    HTPair *new_storage = (HTPair *)ht->alloc(new_size * sizeof(HTPair));
     if (new_storage == NULL) { // Error checking
         return;
     }
+    memset(new_storage, 0, new_size * sizeof(HTPair)); // Zero out
 
     // Save reference to to old storage and old size
     HTPair *old_storage = ht->storage;
@@ -97,7 +100,7 @@ static void grow(HashTable *ht, size_t new_size) {
     // Cleanup old pairs
     for (size_t i = 0; i < ht->capacity; ++i) {
         if (ht->storage[i].key) {
-            free(ht->storage[i].key);
+            ht->dealloc(ht->storage[i].key);
         }
     }
 }
@@ -116,7 +119,7 @@ void htab_put(HashTable *ht, const char *key, const size_t keylen, void *value) 
     // Check if there's nothing at index
     if (ht->storage[index].value == NULL) {
         printf("Insert index is at: %lu for %s\n", index, key);
-        ht->storage[index].key = malloc(keylen);
+        ht->storage[index].key = ht->alloc(keylen);
         if (ht->storage[index].key == NULL) { // Error checking
             return; // Just return
         }
@@ -136,7 +139,7 @@ void htab_put(HashTable *ht, const char *key, const size_t keylen, void *value) 
     // If there's something at the index find next index
     uint64_t other_index = index + 1;
     while((other_index % ht->capacity) != index) {
-        if (ht->storage[other_index % ht->capacity].keylen == 0) {
+        if (ht->storage[other_index % ht->capacity].value == NULL) {
             printf("Found empty slot at: %lu\n", other_index);
             break;
         } else {
@@ -148,8 +151,9 @@ void htab_put(HashTable *ht, const char *key, const size_t keylen, void *value) 
     printf("Insert index is at: %lu for %s\n", other_index, key);
     if (other_index == index) { // We have cycled through the list and have to grow
         grow(ht, ht->capacity * 2);
+        htab_put(ht, key, keylen, value); // Call recursively for now...
     } else {
-        ht->storage[other_index].key = malloc(keylen);
+        ht->storage[other_index].key = ht->alloc(keylen);
         if (ht->storage[other_index].key == NULL) { // Error checking
             return; // Just return
         }
@@ -162,7 +166,6 @@ void htab_put(HashTable *ht, const char *key, const size_t keylen, void *value) 
 
         // Assign keylength
         ht->storage[other_index].keylen = keylen;
-
     }
 }
 
@@ -205,13 +208,13 @@ void htab_free(HashTable *ht) {
     for (uint64_t i = 0; i < ht->capacity; ++i) {
         if (ht->storage[i].keylen != 0) {
             //printf("Free: %p\n", ht->storage[i].key);
-            free(ht->storage[i].key);
+            ht->dealloc(ht->storage[i].key);
         }
     }
 
     // free storage array
-    free(ht->storage);
+    ht->dealloc(ht->storage);
 
     // free struct itself 
-    free(ht);
+    ht->dealloc(ht); // NOTE: No Idea if this is allowed :)
 }

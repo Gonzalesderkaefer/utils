@@ -16,12 +16,14 @@ typedef struct _ListStats {
 
 /*********************************** Macros ***********************************/
 
-#define list_init(lst) ListStats list_stats##lst = { .capacity = 0, .length = 0, .elem_size = sizeof(*lst), .storage = lst, .alloc = malloc, .dealloc = free }
+#define list_init(lst) \
+    ListStats list_stats##lst = (ListStats) { .capacity = 0, .length = 0, .elem_size = sizeof(*lst), .storage = lst, .alloc = malloc, .dealloc = free }; \
+    ListStats *list_handle##lst = &list_stats##lst
 
 #define list_push(lst, elem) \
-    grow_list_stat(&list_stats##lst); \
-    lst = list_stats##lst.storage; \
-    lst[list_stats##lst.length++] = elem
+    grow_list_stat(list_handle##lst); \
+    lst = list_handle##lst->storage; \
+    lst[list_handle##lst->length++] = elem
 
 #define list_len(lst) \
     list_stats##lst.length
@@ -32,11 +34,11 @@ typedef struct _ListStats {
 #define list_free(lst) \
     _list_free(&list_stats##lst)
 
-#define list_stat(lst) list_stats##lst
+#define list_stat(lst) list_handle##lst
 
 #define list_from_stats(lstname, stats) \
-    lstname = stats.storage; \
-    ListStats list_stats##lstname = stats; \
+    lstname = stats->storage; \
+    ListStats *list_handle##lstname = stats; \
 
 
 /******************************** Functions ***********************************/

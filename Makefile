@@ -42,7 +42,7 @@ test: export
 	@$(CC) $(CFLAGS) $(OBJECTS) $(BUILDDIR)/test.o $(LFLAGS) -o run.out
 
 
-export: $(OBJECTS)
+export: $(OBJECTS) $(TARDIR)/list.h
 	@echo "Linking $^"
 	@mkdir -p target
 	@ar rcs $(LIBDIR)/libutils.a $(OBJECTS)
@@ -50,8 +50,9 @@ export: $(OBJECTS)
 	@for h in $(HEADERS) ; do \
 		cp $$h target/ ; \
 	done
+	@cp $(SRCDIR)/list/list.h $(TARDIR)/list.h
 
-
+$(TARDIR)/list.h: $(SRCDIR)/list/list.h
 
 # Default target to create a combined static library
 $(COMBLIB):

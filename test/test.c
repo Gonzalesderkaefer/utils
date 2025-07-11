@@ -1,10 +1,10 @@
 #include <stdio.h>
 
 //#include "../src/minlist/minlist.h"
-#include "../src/minlist/list.h"
+#include "../src/list/list.h"
 
 
-void list_test() {
+void list_test(void) {
     char **names = NULL;
     list_init(names);
     list_push(names, "John");
@@ -16,5 +16,13 @@ void list_test() {
 
 int main(void) {
     list_test();
+
+
+    struct { int key; float value; } *hash = NULL;
+
+
+
+
+
 }
 
