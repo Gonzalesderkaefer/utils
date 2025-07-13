@@ -1,5 +1,5 @@
 // Header file
-
+#include "htab.h"
 
 // Libraries
 #include <stddef.h>
@@ -68,9 +68,9 @@ static uint64_t fnv1a_hash(const char *key, const size_t length) {
     }
     return hash;
 }
-
-// TODO: Implement this!!
-void grow(Htab *htab);
+// TODO: Implement this
+void grow(Htab *htab) {
+}
 
 
 
@@ -86,19 +86,22 @@ void htab_insert(Htab *htab, void *value, void *key, size_t keylen, bool allocat
     const uint64_t index = hash % htab->capacity;
 
     // If index is free.
-    if (htab->storage[index].value != NULL) {
+    if (htab->storage[index].value == NULL) {
         // Allocate key
         char *new_key = htab->alloc(keylen);
         if (new_key == NULL) {
             return;
         }
+        // Copy key into allocated buffer
+        memcpy(new_key, key, keylen);
+
         htab->storage[index].keylen = keylen;
         htab->storage[index].key = new_key;
         htab->storage[index].value = value;
         htab->storage[index].allocated = allocated;
     } else {
         // Find different index
-        uint64_t other_index = index + 1;
+        uint64_t other_index = (index + 1) % htab->capacity;
         while (htab->storage[other_index].value != NULL) {
             // If we reached the original index, we have
             // to grow
@@ -114,6 +117,9 @@ void htab_insert(Htab *htab, void *value, void *key, size_t keylen, bool allocat
         if (new_key == NULL) {
             return;
         }
+        // Copy key into allocated buffer
+        memcpy(new_key, key, keylen);
+
         htab->storage[other_index].keylen = keylen;
         htab->storage[other_index].key = new_key;
         htab->storage[other_index].value = value;
@@ -121,8 +127,67 @@ void htab_insert(Htab *htab, void *value, void *key, size_t keylen, bool allocat
     }
 }
 
+static bool key_match_pair(const Pair *pair, const char *key, const size_t keylen) {
+    // Sanity check
+    if (pair == NULL || key == NULL || keylen == 0) {
+        return false;
+    }
+    // If key length is different, there's no point in 
+    // keeping going.
+    if (pair->keylen != keylen) {
+        return false;
+    }
+    // Compare the actual memory
+    if (memcmp(key, pair->key, keylen) == 0) {
+        return true;
+    }
 
+    // Keylen was same but memory was different
+    return false;
 
+}
+
+void *htab_lookup(Htab *htab, char *key, size_t keylen) {
+    // Sanity check
+    if (htab == NULL || key == NULL || keylen == 0) {
+        return NULL;
+    }
+
+    // Calculate hash and index
+    const uint64_t hash = fnv1a_hash(key, keylen);
+    const uint64_t index = hash % htab->capacity;
+
+    uint64_t other_index = index;
+    while (!key_match_pair(&htab->storage[other_index], key, keylen)) {
+        if (other_index == index) {
+            return NULL;
+        }
+        other_index = (other_index + 1) % htab->capacity;
+    }
+
+    // Value was found otherwise we'd still be in the loop
+    return htab->storage[other_index].value;
+}
+
+void htab_free(Htab *htab) {
+    for (uint i = 0; i < htab->length; ++i) {
+        // Check if Slot is occupied
+        if (htab->storage[i].value != NULL) {
+            // Free key
+            htab->dealloc(htab->storage[i].value);
+            // Check if value is allocated 
+            if (htab->storage[i].allocated) {
+                // Free value
+                htab->dealloc(htab->storage[i].value);
+            }
+        }
+    }
+    // Save pointer to deallocation function
+    void (*dealloc)(void *) = htab->dealloc;
+
+    // Deallocate struct itself
+    dealloc(htab);
+}
 
 
 
