@@ -32,7 +32,7 @@ typedef struct _ListStats {
     for (int i = 0; i < list_stats##lst.length; ++i) action(lst[i])
 
 #define list_free(lst) \
-    _list_free(&list_stats##lst)
+    list_handle##lst->dealloc(list_handle##lst->storage);
 
 #define list_stat(lst) list_handle##lst
 
@@ -72,10 +72,4 @@ static void grow_list_stat(ListStats *lststat) {
         lststat->storage = new_storage;
     }
 }
-
-
-static void _list_free(ListStats *lststat) {
-    lststat->dealloc(lststat->storage);
-}
-
 #endif // MIN_LIST_H

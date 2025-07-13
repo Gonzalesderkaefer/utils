@@ -16,13 +16,5 @@ void list_test(void) {
 
 int main(void) {
     list_test();
-
-
-    struct { int key; float value; } *hash = NULL;
-
-
-
-
-
 }
 
