@@ -1,11 +1,6 @@
-#include <assert.h>
-#include <stdio.h>
-
-//#include "../src/minlist/minlist.h"
-#include "../src/list/list.h"
-#include "../src/htab/htab.h"
-#include "../src/htab/dict.h"
 #include "../src/lin_alloc/lin_alloc.h"
+#include "../src/list/temp_list.h"
+#include <stdio.h>
 
 lin_init();
 
@@ -17,29 +12,32 @@ void this_free(void *ptr) {}
 
 
 void list_test(void) {
-    char **names = NULL;
-    list_init(names);
-    list_push(names, "John");
-    list_push(names, "David");
-    list_action(names, puts);
-    list_free(names);
+    list_type(int) new_list = {.alloc = this_alloc, .dealloc = this_free};
+    list_push(new_list, 0);
+    list_push(new_list, 1);
+    list_push(new_list, 2);
+    list_push(new_list, 3);
+    list_push(new_list, 4);
+    list_push(new_list, 5);
+    list_push(new_list, 7);
+    list_push(new_list, 8);
+    list_push(new_list, 9);
+    list_push(new_list, 10);
+    list_push(new_list, 11);
+    list_push(new_list, 12);
+    list_push(new_list, 13);
+    for (int i = 0; i < new_list.length; ++i) {
+        printf("%d\n", new_list.storage[i]);
+    }
 }
 
 
 void htab_test(void) {
-    lin_switch(htab_test);
-    Htab *dictionary = dict_init(this_alloc, this_free);
-
-
-
-
-
-
-    lin_free(htab_test);
 }
 
 
 int main(void) {
-    htab_test();
+    list_test();
+    lfree(cur_mem);
 }
 
