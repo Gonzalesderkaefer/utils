@@ -18,4 +18,5 @@ void htab_insert(Htab *htab, void *value, void *key, size_t keylen, bool allocat
 
 void *htab_lookup(Htab *htab, char *key, size_t keylen);
 
+void htab_free(Htab *htab);
 #endif // HTAB_H
