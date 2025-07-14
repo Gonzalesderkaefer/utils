@@ -4,6 +4,7 @@
 // Libraries
 #include <stddef.h>
 #include <stdbool.h>
+#include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
 #include <sys/types.h>
@@ -40,18 +41,18 @@ Htab *htab_init(void *(*alloc)(size_t), void (*dealloc)(void *)) {
     }
 
     // Allocate storage
-    Pair *new_storage = alloc(sizeof(Pair) * 16);
+    Pair *new_storage = alloc(sizeof(Pair) * INIT_SIZE);
     if (new_storage == NULL) {
         dealloc(new_table);
         return NULL;
     }
     // Zero out memory
-    memset(new_storage, 0, sizeof(Pair) * 16);
+    memset(new_storage, 0, sizeof(Pair) * INIT_SIZE);
 
     // Assign struct fields
     new_table->alloc = alloc;
     new_table->dealloc = dealloc;
-    new_table->capacity = 16;
+    new_table->capacity = INIT_SIZE;
     new_table->length = 0;
     new_table->storage = new_storage;
 
@@ -68,8 +69,73 @@ static uint64_t fnv1a_hash(const char *key, const size_t length) {
     }
     return hash;
 }
-// TODO: Implement this
-void grow(Htab *htab) {
+
+
+
+static void reinsert_after_grow(Htab *htab, void *value, void *key, size_t keylen, bool allocated) {
+    // Sanity check
+    if (value == NULL || key == NULL || keylen == 0) {
+        return;
+    }
+
+
+    // Calculate hash and index
+    const uint64_t hash = fnv1a_hash(key, keylen);
+    const uint64_t index = hash % htab->capacity;
+
+    // If index is free.
+    if (htab->storage[index].value == NULL) {
+        htab->storage[index].keylen = keylen;
+        htab->storage[index].key = key;
+        htab->storage[index].value = value;
+        htab->storage[index].allocated = allocated;
+    } else {
+        // Find different index
+        uint64_t other_index = (index + 1) % htab->capacity;
+        while (htab->storage[other_index].value != NULL) {
+            // increment other_index
+            other_index = (other_index + 1) % htab->capacity;
+        }
+        htab->storage[other_index].keylen = keylen;
+        htab->storage[other_index].key = key;
+        htab->storage[other_index].value = value;
+        htab->storage[other_index].allocated = allocated;
+    }
+}
+
+
+static void grow(Htab *htab) {
+    // save storage
+    Pair *old_storage = htab->storage;
+    size_t old_cap = htab->capacity;
+
+    // Allocate new storage
+    Pair *new_storage = htab->alloc(old_cap * 2);
+    if (new_storage == NULL) {
+        return;
+    }
+    // Overwrite with 0
+    memset(new_storage, 0, old_cap * 2);
+
+    // Assign new_storage to htab
+    htab->storage = new_storage;
+    htab->capacity = old_cap * 2;
+
+    for (uint64_t i = 0; i < old_cap; i++) {
+        const Pair cur_pair = old_storage[i];
+
+        // Insert into new storage
+        reinsert_after_grow(
+            htab,
+            cur_pair.value,
+            cur_pair.key,
+            cur_pair.keylen,
+            cur_pair.allocated
+        );
+    }
+
+    // Cleanup old storage
+    htab->dealloc(old_storage);
 }
 
 
@@ -107,7 +173,7 @@ void htab_insert(Htab *htab, void *value, void *key, size_t keylen, bool allocat
             // to grow
             if (other_index == index) {
                 grow(htab);
-                return;
+                other_index = index;
             }
             // increment other_index
             other_index = (other_index + 1) % htab->capacity;
@@ -127,18 +193,20 @@ void htab_insert(Htab *htab, void *value, void *key, size_t keylen, bool allocat
     }
 }
 
-static bool key_match_pair(const Pair *pair, const char *key, const size_t keylen) {
+static bool key_match_pair(const Pair pair, const char *key, const size_t keylen) {
     // Sanity check
-    if (pair == NULL || key == NULL || keylen == 0) {
+    if (pair.key == NULL || pair.value == NULL || key == NULL || keylen == 0) {
         return false;
     }
+
+
     // If key length is different, there's no point in 
     // keeping going.
-    if (pair->keylen != keylen) {
+    if (pair.keylen != keylen) {
         return false;
     }
     // Compare the actual memory
-    if (memcmp(key, pair->key, keylen) == 0) {
+    if (memcmp(key, pair.key, keylen) == 0) {
         return true;
     }
 
@@ -158,11 +226,11 @@ void *htab_lookup(Htab *htab, char *key, size_t keylen) {
     const uint64_t index = hash % htab->capacity;
 
     uint64_t other_index = index;
-    while (!key_match_pair(&htab->storage[other_index], key, keylen)) {
+    while (!key_match_pair(htab->storage[other_index], key, keylen)) {
+        other_index = (other_index + 1) % htab->capacity;
         if (other_index == index) {
             return NULL;
         }
-        other_index = (other_index + 1) % htab->capacity;
     }
 
     // Value was found otherwise we'd still be in the loop
@@ -170,7 +238,7 @@ void *htab_lookup(Htab *htab, char *key, size_t keylen) {
 }
 
 void htab_free(Htab *htab) {
-    for (uint i = 0; i < htab->length; ++i) {
+    for (int i = 0; i < htab->length; ++i) {
         // Check if Slot is occupied
         if (htab->storage[i].value != NULL) {
             // Free key
@@ -188,14 +256,3 @@ void htab_free(Htab *htab) {
     // Deallocate struct itself
     dealloc(htab);
 }
-
-
-
-
-
-
-
-
-
-
-
