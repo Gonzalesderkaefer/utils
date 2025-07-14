@@ -256,3 +256,12 @@ void htab_free(Htab *htab) {
     // Deallocate struct itself
     dealloc(htab);
 }
+
+
+HtabAlloc htab_alloc(Htab *htab) {
+    return htab->alloc;
+}
+
+HtabDeAlloc htab_dealloc(Htab *htab) {
+    return htab->dealloc;
+}

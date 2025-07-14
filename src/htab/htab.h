@@ -11,6 +11,8 @@
 // TODO: Add documentation
 
 typedef struct _Htab  Htab;
+typedef void *(*HtabAlloc)(size_t);
+typedef void (*HtabDeAlloc)(void *);
 
 Htab *htab_init(void *(*alloc)(size_t), void (*dealloc)(void *));
 
@@ -19,4 +21,9 @@ void htab_insert(Htab *htab, void *value, void *key, size_t keylen, bool allocat
 void *htab_lookup(Htab *htab, char *key, size_t keylen);
 
 void htab_free(Htab *htab);
+
+HtabAlloc dict_alloc(Htab *htab);
+
+HtabDeAlloc dict_dealloc(Htab *htab);
+
 #endif // HTAB_H
