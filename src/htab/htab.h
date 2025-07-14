@@ -6,12 +6,9 @@
 
 
 // Macros
-#define INIT_SIZE 4
+#define INIT_SIZE 16
 
 // TODO: Add documentation
-
-
-typedef struct _Pair Pair;
 
 typedef struct _Htab  Htab;
 
@@ -20,17 +17,5 @@ Htab *htab_init(void *(*alloc)(size_t), void (*dealloc)(void *));
 void htab_insert(Htab *htab, void *value, void *key, size_t keylen, bool allocated);
 
 void *htab_lookup(Htab *htab, char *key, size_t keylen);
-
-
-
-
-
-
-
-
-
-
-
-
 
 #endif // HTAB_H
