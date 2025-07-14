@@ -5,20 +5,20 @@
 #include <stddef.h>
 #include <string.h>
 
-typedef struct _ListStats {
+typedef struct _List {
     size_t capacity;
     size_t length;
     size_t elem_size; 
     void *(*alloc)(size_t);
     void (*dealloc)(void *);
     void *storage;
-} ListStats;
+} List;
 
 /*********************************** Macros ***********************************/
 
 #define list_init(lst) \
-    ListStats list_stats##lst = (ListStats) { .capacity = 0, .length = 0, .elem_size = sizeof(*lst), .storage = lst, .alloc = malloc, .dealloc = free }; \
-    ListStats *list_handle##lst = &list_stats##lst
+    List list_stats##lst = (List) { .capacity = 0, .length = 0, .elem_size = sizeof(*lst), .storage = lst, .alloc = malloc, .dealloc = free }; \
+    List *list_handle##lst = &list_stats##lst
 
 #define list_push(lst, elem) \
     grow_list_stat(list_handle##lst); \
@@ -38,12 +38,12 @@ typedef struct _ListStats {
 
 #define list_from_stats(lstname, stats) \
     lstname = stats->storage; \
-    ListStats *list_handle##lstname = stats; \
+    List *list_handle##lstname = stats; \
 
 
 /******************************** Functions ***********************************/
 
-static void grow_list_stat(ListStats *lststat) {
+static void grow_list_stat(List *lststat) {
     if (lststat->length < lststat->capacity) {// If everything is okay
         return;
     }
