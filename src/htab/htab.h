@@ -4,6 +4,10 @@
 #include <sys/types.h>
 #include <stdbool.h>
 
+
+// Macros
+#define INIT_SIZE 4
+
 // TODO: Add documentation
 
 

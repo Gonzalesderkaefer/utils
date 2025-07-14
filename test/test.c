@@ -1,8 +1,9 @@
+#include <assert.h>
 #include <stdio.h>
 
 //#include "../src/minlist/minlist.h"
 #include "../src/list/list.h"
-#include "../src/hash_table/htab.h"
+#include "../src/htab/htab.h"
 #include "../src/lin_alloc/lin_alloc.h"
 
 lin_init();
@@ -30,19 +31,23 @@ void htab_test(void) {
     int one = 1;
     int two = 2;
     int three = 3;
+    int four = 4;
+    int five = 5;
+    int six = 6;
 
-    htab_insert(htab, &one, "one", 4, false);
-    htab_insert(htab, &two, "two", 4, false);
-    htab_insert(htab, &three, "three", 6, false);
+    htab_insert(htab, &one, "one", strlen("one") + 1, false);
+    htab_insert(htab, &two, "two", strlen("two") + 1, false);
+    htab_insert(htab, &three, "three", strlen("three") + 1, false);
+    htab_insert(htab, &four, "four", strlen("four") + 1, false);
+    htab_insert(htab, &five, "five", strlen("five") + 1, false);
+    htab_insert(htab, &six, "six", strlen("six") + 1, false);
 
-    int *one_ptr = htab_lookup(htab, "one", 4);
-    printf("%p\n", one_ptr);
-    
-    int *two_ptr = htab_lookup(htab, "two", 4);
-    printf("%p\n", two_ptr);
-    
-    int *three_ptr = htab_lookup(htab, "three", 6);
-    printf("%p\n", three_ptr);
+    assert(htab_lookup(htab, "one", strlen("one") + 1) == &one);
+    assert(htab_lookup(htab, "two", strlen("two") + 1) == &two);
+    assert(htab_lookup(htab, "three", strlen("three") + 1) == &three);
+    assert(htab_lookup(htab, "four", strlen("four") + 1) == &four);
+    assert(htab_lookup(htab, "five", strlen("five") + 1) == &five);
+    assert(htab_lookup(htab, "six", strlen("six") + 1) == &six);
 
     lin_free(htab_test);
 }
