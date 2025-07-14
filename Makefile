@@ -70,3 +70,9 @@ $(BUILDDIR)/%.o: $(SRCDIR)/%.c $(SRCDIR)/%.h
 	@echo "Building $(shell basename $@)"
 	@mkdir -p $(shell dirname $@)
 	$(CC) $(CFLAGS) -c $< -o $@
+
+
+clean:
+	rm -rf build/*
+	rm run.out
+	rm -rf target/*
