@@ -22,8 +22,8 @@ void *htab_lookup(Htab *htab, char *key, size_t keylen);
 
 void htab_free(Htab *htab);
 
-HtabAlloc dict_alloc(Htab *htab);
+HtabAlloc htab_alloc(Htab *htab);
 
-HtabDeAlloc dict_dealloc(Htab *htab);
+HtabDeAlloc htab_dealloc(Htab *htab);
 
 #endif // HTAB_H
