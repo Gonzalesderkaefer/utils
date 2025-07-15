@@ -7,7 +7,8 @@
 #include <string.h>
 
 
-#define list_type(type) \
+// The list type
+#define ListOf(type) \
     struct { \
         size_t capacity; \
         size_t length; \
