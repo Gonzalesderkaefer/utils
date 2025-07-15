@@ -12,7 +12,7 @@ void this_free(void *ptr) {}
 
 
 void list_test(void) {
-    list_type(int) new_list = {.alloc = this_alloc, .dealloc = this_free};
+    ListOf(int) new_list = {.alloc = this_alloc, .dealloc = this_free};
     list_push(new_list, 0);
     list_push(new_list, 1);
     list_push(new_list, 2);

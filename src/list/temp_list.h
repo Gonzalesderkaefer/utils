@@ -21,6 +21,7 @@
     list.alloc = allocat; list.dealloc = deallocat
 
 #define list_push(list, new_value) \
+    /*         storage                 elem_size              cap             len           alloc       dealloc      */\
     grow_list((void **) &list.storage, sizeof(*list.storage), &list.capacity, &list.length, list.alloc, list.dealloc); \
     list.storage[list.length++] = new_value
 
