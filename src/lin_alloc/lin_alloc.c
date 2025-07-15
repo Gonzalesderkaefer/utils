@@ -112,6 +112,10 @@ static void *blk_alloc(Block *blk, const size_t size, bool zero) {
 
 /********************* Linear Allocator implementation **********************/
 void *lalloc(LinAlloc *linear_alloc, size_t size){
+    // Sanity check
+    if (linear_alloc == NULL) {
+        return NULL;
+    }
     // Allocate first block if needed
     if (linear_alloc->first == NULL) {
         Block *new_block;
