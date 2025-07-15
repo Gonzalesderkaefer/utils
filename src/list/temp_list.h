@@ -18,6 +18,7 @@
     }
 
 #define list_init(list, allocat, deallocat) \
+    memset(&list, 0, sizeof(list)); \
     list.alloc = allocat; list.dealloc = deallocat
 
 #define list_push(list, new_value) \
