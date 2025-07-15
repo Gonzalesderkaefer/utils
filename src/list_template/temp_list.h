@@ -7,6 +7,7 @@
 #include <string.h>
 
 
+
 // The list type
 #define ListOf(type) \
     struct { \
@@ -16,6 +17,8 @@
         void (*dealloc)(void *); \
         type *storage; \
     }
+
+
 
 #define list_init(list, allocat, deallocat) \
     memset(&list, 0, sizeof(list)); \

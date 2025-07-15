@@ -13,21 +13,21 @@
 
 /// This initializes the macro interface for the linear allocators
 #define glob_lin_init() \
-    LinAlloc glob_mem = {0}; \
-    LinAlloc *cur_mem = &glob_mem; \
-    LinAlloc *last_mem = NULL
+    RegAlloc glob_mem = {0}; \
+    RegAlloc *cur_mem = &glob_mem; \
+    RegAlloc *last_mem = NULL
 
 
 /// This initializes the macro interface for the linear allocators
 #define lin_init() \
-    static LinAlloc glob_mem = {0}; \
-    static LinAlloc *cur_mem = &glob_mem; \
-    LinAlloc *last_mem = NULL
+    static RegAlloc glob_mem = {0}; \
+    static RegAlloc *cur_mem = &glob_mem; \
+    RegAlloc *last_mem = NULL
 
 
 /// create a new allocator to use
 #define lin_switch(new_allocator) \
-    LinAlloc new_allocator = {0}; \
+    RegAlloc new_allocator = {0}; \
     last_mem = cur_mem; \
     cur_mem = &new_allocator
 
@@ -48,19 +48,19 @@ typedef struct _Block Block;
 /// linear allocator and is passed around as a pointer
 /// You have to init it with:
 /// ```
-/// LinAlloc glob_mem = {0};
+/// RegAlloc glob_mem = {0};
 /// ```
-typedef struct _LinAlloc {
+typedef struct _RegAlloc {
     Block *first;
     Block *current;
-} LinAlloc;
+} RegAlloc;
 
 /// This function alloctaes a chunk of memory of size
 /// in the linear allocator.
-void *lalloc(LinAlloc *linear_alloc, size_t size);
+void *lalloc(RegAlloc *linear_alloc, size_t size);
 
 
 
 /// This function frees all the memory in the linear allocator
-void lfree(LinAlloc *linear_alloc);
+void lfree(RegAlloc *linear_alloc);
 #endif // LIN_ALLOC_H

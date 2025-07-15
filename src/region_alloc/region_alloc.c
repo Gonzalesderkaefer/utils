@@ -1,5 +1,5 @@
 // Header file
-#include "lin_alloc.h"
+#include "region_alloc.h"
 
 // Libraries
 #include <stdlib.h>
@@ -111,13 +111,13 @@ static void *blk_alloc(Block *blk, const size_t size, bool zero) {
 
 
 /********************* Linear Allocator implementation **********************/
-void *lalloc(LinAlloc *linear_alloc, size_t size){
+void *lalloc(RegAlloc *region_alloc, size_t size){
     // Sanity check
-    if (linear_alloc == NULL) {
+    if (region_alloc == NULL) {
         return NULL;
     }
     // Allocate first block if needed
-    if (linear_alloc->first == NULL) {
+    if (region_alloc->first == NULL) {
         Block *new_block;
         if (size > blocksize) {
             new_block = blk_init_sized(size);
@@ -130,12 +130,12 @@ void *lalloc(LinAlloc *linear_alloc, size_t size){
         }
 
         // Assign to struct
-        linear_alloc->first = new_block;
-        linear_alloc->current = new_block;
+        region_alloc->first = new_block;
+        region_alloc->current = new_block;
     }
 
     // Get current block
-    Block *cur_blk = linear_alloc->current;
+    Block *cur_blk = region_alloc->current;
 
     // Check if custom block needs to be allocated
     if (size > blocksize) {
@@ -178,9 +178,9 @@ void *lalloc(LinAlloc *linear_alloc, size_t size){
 
 
 
-void lfree(LinAlloc *linear_alloc) {
+void rfree(RegAlloc *region_alloc) {
 
-    Block *cur_blk = linear_alloc->first;
+    Block *cur_blk = region_alloc->first;
     Block *next_blk = NULL;
     while (cur_blk != NULL) {
         // Store next block
@@ -190,6 +190,6 @@ void lfree(LinAlloc *linear_alloc) {
         // Assign it to cur_blk
         cur_blk = next_blk;
     }
-    linear_alloc->current = NULL;
-    linear_alloc->first = NULL;
+    region_alloc->current = NULL;
+    region_alloc->first = NULL;
 }
