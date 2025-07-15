@@ -14,25 +14,29 @@
 /// This initializes the macro interface for the linear allocators
 #define glob_lin_init() \
     LinAlloc glob_mem = {0}; \
-    LinAlloc *cur_mem = &glob_mem;
+    LinAlloc *cur_mem = &glob_mem; \
+    LinAlloc *last_mem = NULL
 
 
 /// This initializes the macro interface for the linear allocators
 #define lin_init() \
     static LinAlloc glob_mem = {0}; \
-    static LinAlloc *cur_mem = &glob_mem;
+    static LinAlloc *cur_mem = &glob_mem; \
+    LinAlloc *last_mem = NULL
 
 
 /// create a new allocator to use
 #define lin_switch(new_allocator) \
     LinAlloc new_allocator = {0}; \
-    cur_mem = &new_allocator;
+    last_mem = cur_mem; \
+    cur_mem = &new_allocator
 
 /// Free used allocator and assign current allocator
 /// back
 #define lin_free(new_allocator) \
     lfree(&new_allocator);\
-    cur_mem = &glob_mem;
+    assert(last_mem != NULL); \
+    cur_mem = last_mem
 
 
 
