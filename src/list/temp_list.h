@@ -1,8 +1,10 @@
+#ifndef TEMP_LIST_H
+#define TEMP_LIST_H
 
+// Libraries
 #include <sys/types.h>
 #include <stddef.h>
 #include <string.h>
-
 
 
 #define list_type(type) \
@@ -28,10 +30,10 @@
 
 #define list_get(list, index) list.storage[index]
 
+#define list_len(list) list.length
+
 #define list_free(list) \
     list.dealloc(list.storage)
-
-
 
 
 
@@ -72,3 +74,6 @@ static void grow_list(void **storage, size_t elem_size, size_t *cap, size_t *len
         *storage = new_storage;
     }
 }
+
+
+#endif // TEMP_LIST_H
