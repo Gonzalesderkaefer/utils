@@ -21,6 +21,13 @@
     grow_list((void **) &list.storage, sizeof(*list.storage), &list.capacity, &list.length, list.alloc, list.dealloc); \
     list.storage[list.length++] = new_value
 
+#define list_action(list, func) \
+    for (int i = 0; i < list.length; ++i) { \
+        func(list.storage[i]); \
+    }
+
+#define list_get(list, index) list.storage[index]
+
 #define list_free(list) \
     list.dealloc(list.storage)
 
