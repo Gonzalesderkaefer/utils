@@ -1,43 +1,61 @@
-#include "../src/lin_alloc/lin_alloc.h"
-#include "../src/list/temp_list.h"
+#include "../src/htab/htab_real_impl.c"
+#include <stdlib.h>
 #include <stdio.h>
 
-lin_init();
-
-void *this_alloc(size_t size) {
-    return lalloc(cur_mem, size);
-}
-
-void this_free(void *ptr) {}
+HtabDef(double, int);
+HtabImpl(double, int);
 
 
-void list_test(void) {
-    ListOf(int) new_list = {.alloc = this_alloc, .dealloc = this_free};
-    list_push(new_list, 0);
-    list_push(new_list, 1);
-    list_push(new_list, 2);
-    list_push(new_list, 3);
-    list_push(new_list, 4);
-    list_push(new_list, 5);
-    list_push(new_list, 7);
-    list_push(new_list, 8);
-    list_push(new_list, 9);
-    list_push(new_list, 10);
-    list_push(new_list, 11);
-    list_push(new_list, 12);
-    list_push(new_list, 13);
-    for (int i = 0; i < new_list.length; ++i) {
-        printf("%d\n", new_list.storage[i]);
+
+static bool key_match_pair_double_int(const PairOf(double, int) pair, const char *key, const size_t keylen) {
+    // Sanity check
+    if (key == NULL || keylen == 0) {
+        return false;
     }
+
+
+    // If key length is different, there's no point in 
+    // keeping going.
+    if (sizeof(pair.k) != keylen) {
+        return false;
+    }
+    // Compare the actual memory
+    if (memcmp(key, &pair.k, keylen) == 0) {
+        return true;
+    }
+
+    // Keylen was same but memory was different
+    return false;
 }
 
 
-void htab_test(void) {
-}
 
+int htab_lookup_double_int(HtabOf(double, int) *htab, double key) {
+    // Sanity check
+    if (htab == NULL) {
+        return 0;
+    }
+
+    // Calculate hash and index
+    const uint64_t hash = fnv1a_hash_double_int((char *)&key, sizeof(key));
+    const uint64_t index = hash % htab->capacity;
+
+    uint64_t other_index = index;
+    while (!key_match_pair_double_int(htab->storage[other_index], (char *)&key, sizeof(key))) {
+        other_index = (other_index + 1) % htab->capacity;
+        if (other_index == index) {
+            return 0;
+        }
+    }
+
+    // Value was found otherwise we'd still be in the loop
+    return htab->storage[other_index].v;
+}
 
 int main(void) {
-    list_test();
-    lfree(cur_mem);
+    HtabOf(double, int) *htab = htab_init_double_int(malloc, free);
+    htab_insert_double_int(htab, 3, 3.3);
+    printf("%d\n", htab_lookup_double_int(htab, 3.3));
+    htab_free_double_int(htab);
 }
 
