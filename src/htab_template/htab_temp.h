@@ -74,7 +74,7 @@
     /* NOTE: See (https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function) */\
     uint64_t fnv1a_hash_##keytype##_##valuetype(const char *key, const size_t length) {\
         uint64_t hash = 14695981039346656037LU;\
-        for (valuetype i = 0; i < length; ++i) {\
+        for (int i = 0; i < length; ++i) {\
             hash ^= key[i];\
             hash *= 1099511628211;\
         }\
@@ -185,7 +185,7 @@
         const uint64_t index = hash % htab->capacity; \
         \
         uint64_t other_index = index; \
-        while (!key_match_pair_double_int(htab->storage[other_index], (char *)&key, sizeof(key))) { \
+        while (!key_match_pair_##keytype##_##valuetype(htab->storage[other_index], (char *)&key, sizeof(key))) { \
             other_index = (other_index + 1) % htab->capacity; \
             if (other_index == index) { \
                 return NULL; \
