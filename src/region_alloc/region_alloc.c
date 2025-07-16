@@ -110,8 +110,8 @@ static void *blk_alloc(Block *blk, const size_t size, bool zero) {
 
 
 
-/********************* Linear Allocator implementation **********************/
-void *lalloc(RegAlloc *region_alloc, size_t size){
+/********************* Region Allocator implementation **********************/
+void *r_alloc(RegAlloc *region_alloc, size_t size){
     // Sanity check
     if (region_alloc == NULL) {
         return NULL;
@@ -178,7 +178,7 @@ void *lalloc(RegAlloc *region_alloc, size_t size){
 
 
 
-void rfree(RegAlloc *region_alloc) {
+void r_free(RegAlloc *region_alloc) {
 
     Block *cur_blk = region_alloc->first;
     Block *next_blk = NULL;
