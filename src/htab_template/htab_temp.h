@@ -31,6 +31,8 @@
     void htab_insert_##keytype##_##valuetype(HtabOf(keytype, valuetype) *htab, valuetype value, keytype key); \
     void grow_##keytype##_##valuetype(HtabOf(keytype, valuetype) *htab); \
     void htab_free_##keytype##_##valuetype(HtabOf(keytype, valuetype) *htab); \
+    bool key_match_pair_##keytype##_##valuetype(const PairOf(keytype, valuetype) pair, const char *key, const size_t keylen); \
+    valuetype *htab_lookup_##keytype##_##valuetype(HtabOf(keytype, valuetype) *htab, keytype key); \
     \
     \
     \
@@ -55,7 +57,7 @@
         }\
     \
         /* Zero out memory */\
-        memset(new_storage, 0, sizeof(struct { keytype key; char *value; }) * INIT_SIZE);\
+        memset(new_storage, 0, sizeof(PairOf(keytype, valuetype)) * INIT_SIZE);\
     \
         /* Assign fields */\
         new_table->alloc = alloc;\
@@ -152,4 +154,45 @@
     \
         /* Deallocate struct itself */\
         dealloc(htab);\
+    }\
+    bool key_match_pair_##keytype##_##valuetype(const PairOf(keytype, valuetype) pair, const char *key, const size_t keylen) {\
+        /* Sanity check */ \
+        if (key == NULL || keylen == 0) { \
+            return false; \
+        } \
+    \
+    \
+        /* If key length is different, there's no point in keeping going. */ \
+        if (sizeof(pair.k) != keylen) { \
+            return false; \
+        } \
+        /* Compare the actual memory */ \
+        if (memcmp(key, &pair.k, keylen) == 0) { \
+            return true; \
+        } \
+    \
+        /* Keylen was same but memory was different */ \
+        return false; \
+    } \
+    valuetype *htab_lookup_##keytype##_##valuetype(HtabOf(keytype, valuetype) *htab, keytype key){ \
+        /* Sanity check */ \
+        if (htab == NULL) { \
+            return NULL; \
+        } \
+        \
+        /* Calculate hash and index */\
+        const uint64_t hash = fnv1a_hash_double_int((char *)&key, sizeof(key)); \
+        const uint64_t index = hash % htab->capacity; \
+        \
+        uint64_t other_index = index; \
+        while (!key_match_pair_double_int(htab->storage[other_index], (char *)&key, sizeof(key))) { \
+            other_index = (other_index + 1) % htab->capacity; \
+            if (other_index == index) { \
+                return NULL; \
+            } \
+        } \
+        \
+        /* Value was found otherwise we'd still be in the loop */ \
+        return &htab->storage[other_index].v; \
     }
+
