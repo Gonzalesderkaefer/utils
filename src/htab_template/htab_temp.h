@@ -181,7 +181,7 @@
         } \
         \
         /* Calculate hash and index */\
-        const uint64_t hash = fnv1a_##keytype##_##valuetype((char *)&key, sizeof(key)); \
+        const uint64_t hash = fnv1a_hash_##keytype##_##valuetype((char *)&key, sizeof(key)); \
         const uint64_t index = hash % htab->capacity; \
         \
         uint64_t other_index = index; \
