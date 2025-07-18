@@ -5,7 +5,7 @@ PRJNAME := utils
 CC := cc
 
 # Compile flags
-CFLAGS := -Werror -Wall -std=c99 -g -Wno-unused-function
+CFLAGS := -Werror -Wall -std=c23 -g -Wno-unused-function
 
 # Source directory
 SRCDIR := src
@@ -41,7 +41,7 @@ OBJECTS := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.c=.o)) $(AOBJECTS)
 HEADERS := $(SOURCES:.c=.h)
 
 
-export: $(OBJECTS)
+export: $(OBJECTS) clean
 	@echo "Linking $^"
 	@mkdir -p target
 	@ar rcs $(LIBDIR)/libutils.a $(OBJECTS)
@@ -51,7 +51,7 @@ export: $(OBJECTS)
 	done
 
 
-unity: $(UNITYSRC)
+unity: clean $(UNITYSRC)
 
 # Default target for source files
 $(TARDIR)/%.c: $(SRCDIR)/%.c
@@ -85,4 +85,4 @@ $(BUILDDIR)/%.o: $(SRCDIR)/%.c $(SRCDIR)/%.h
 clean:
 	rm -rf build/*
 	rm -rf target/*
-	rm run.out
+	$(shell test -e run.out && rm run.out)
