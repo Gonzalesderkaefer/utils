@@ -53,3 +53,7 @@ dkms.conf
 
 # Export dir
 target/
+
+# All hidden files except gitignore
+.*
+*!/.gitignore
