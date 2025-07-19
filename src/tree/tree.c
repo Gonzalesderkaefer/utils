@@ -190,9 +190,36 @@ static void rotate(TreeNode *node, TreeNode *parent, Direction dir) {
 }
 
 
+static int get_balance(TreeNode *node) {
+    if (node == NULL) {
+        return 0;
+    }
+    return height(node->right_node) - height(node->left_node);
+}
 
 
-
+static void balance_node(TreeNode *parent, TreeNode *node) {
+    if (parent == NULL || node == NULL) {
+        return;
+    }
+    const int balance_value = get_balance(node);
+    if (balance_value <= -2) { // rotate right
+        // check balance of child node
+        int child_bal = get_balance(node->left_node);
+        if (child_bal <= -1) { // Rotate left child inwards
+            rotate(node->left_node, node, Right);
+        }
+        // Finally rotate the node itself
+        rotate(node, parent, Right);
+    } else if (balance_value >= 2) { // rotate left
+        int child_bal = get_balance(node->right_node);
+        if (child_bal >= 1) { // Rotate right child inwards
+            rotate(node->right_node, node, Left);
+        }
+        // Finally rotate the node itself
+        rotate(node, parent, Left);
+    }
+}
 
 
 
