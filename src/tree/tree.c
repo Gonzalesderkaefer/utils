@@ -179,12 +179,7 @@ static TreeNode *rotate(TreeNode *node, Direction dir) {
 }
 
 
-static int get_balance(TreeNode *node) {
-    if (node == NULL) {
-        return 0;
-    }
-    return height(node->right_node) - height(node->left_node);
-}
+#define get_balance(node) ((node) == (NULL) ? (0) : (height(node->right_node) - height(node->left_node)))
 
 /// Balance the given node if necessary
 ///
