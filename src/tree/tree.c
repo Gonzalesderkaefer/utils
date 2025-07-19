@@ -147,14 +147,13 @@ static Direction child_dir(TreeNode *node, TreeNode *parent) {
 ///   - node: Node that needs to be rotated
 ///   - parent: Parent of [node]
 ///   - dir: Direction to rotate in
-static void rotate(TreeNode *node, TreeNode *parent, Direction dir) {
+///
+/// Returns:
+///   New root of sub tree
+static TreeNode *rotate(TreeNode *node, Direction dir) {
     // NULL checks
-    if (node == NULL || node->right_node == NULL || node->left_node == NULL || parent == NULL) {
-        return;
-    }
-    Direction node_direction = child_dir(node, parent);
-    if (node_direction == None) {
-        return;
+    if (node == NULL || node->right_node == NULL || node->left_node == NULL) {
+        return NULL;
     }
 
     TreeNode *old_root = node, *new_root, *inner_grandchild;
@@ -172,21 +171,11 @@ static void rotate(TreeNode *node, TreeNode *parent, Direction dir) {
         old_root->left_node = inner_grandchild;
         break;
     case None:
-        return;
+        return NULL;
         break;
     }
 
-    switch (node_direction) {
-    case Left:
-        parent->left_node = new_root;
-        break;
-    case Right:
-        parent->right_node = new_root;
-        break;
-    case None:
-        return;
-        break;
-    }
+    return new_root;
 }
 
 
@@ -198,26 +187,28 @@ static int get_balance(TreeNode *node) {
 }
 
 
-static void balance_node(TreeNode *parent, TreeNode *node) {
-    if (parent == NULL || node == NULL) {
-        return;
+static TreeNode *balance_node(TreeNode *node) {
+    if (node == NULL) {
+        return NULL;
     }
     const int balance_value = get_balance(node);
     if (balance_value <= -2) { // rotate right
         // check balance of child node
         int child_bal = get_balance(node->left_node);
         if (child_bal <= -1) { // Rotate left child inwards
-            rotate(node->left_node, node, Right);
+            node->left_node = rotate(node->left_node, Right);
         }
         // Finally rotate the node itself
-        rotate(node, parent, Right);
+        return rotate(node, Right);
     } else if (balance_value >= 2) { // rotate left
         int child_bal = get_balance(node->right_node);
         if (child_bal >= 1) { // Rotate right child inwards
-            rotate(node->right_node, node, Left);
+            node->right_node = rotate(node->right_node, Left);
         }
         // Finally rotate the node itself
-        rotate(node, parent, Left);
+        return rotate(node, Left);
+    } else { 
+        return node;
     }
 }
 
@@ -270,13 +261,4 @@ void tree_insert(Tree *tree, void *value) {
             }
         }
     }
-
-    // Balance upto parent (I am not sure if this is correct)
-    while (parent != NULL) {
-        balance_node(parent->parent_node, parent);
-        parent = parent->parent_node; 
-    }
 }
-
-
-
