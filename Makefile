@@ -41,7 +41,7 @@ OBJECTS := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.c=.o)) $(AOBJECTS)
 HEADERS := $(SOURCES:.c=.h)
 
 
-export: $(OBJECTS) clean
+export: clean $(OBJECTS)
 	@echo "Linking $^"
 	@mkdir -p target
 	@ar rcs $(LIBDIR)/libutils.a $(OBJECTS)
