@@ -270,6 +270,12 @@ void tree_insert(Tree *tree, void *value) {
             }
         }
     }
+
+    // Balance upto parent (I am not sure if this is correct)
+    while (parent != NULL) {
+        balance_node(parent->parent_node, parent);
+        parent = parent->parent_node; 
+    }
 }
 
 
