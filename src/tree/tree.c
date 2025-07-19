@@ -186,7 +186,16 @@ static int get_balance(TreeNode *node) {
     return height(node->right_node) - height(node->left_node);
 }
 
-
+/// Balance the given node if necessary
+///
+/// This function balances the node if the absolute height difference
+/// between its left and right child node is greater than 2
+///
+/// Parameters:
+///   - node: root node of subtree that needs to be balanced
+///
+/// Returns:
+///   The new Root of subtree
 static TreeNode *balance_node(TreeNode *node) {
     if (node == NULL) {
         return NULL;
