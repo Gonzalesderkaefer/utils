@@ -149,7 +149,7 @@ static Direction child_dir(TreeNode *node, TreeNode *parent) {
 ///   - dir: Direction to rotate in
 ///
 /// Returns:
-///   New root of sub tree
+///   New root of subtree
 static TreeNode *rotate(TreeNode *node, Direction dir) {
     // NULL checks
     if (node == NULL || node->right_node == NULL || node->left_node == NULL) {
@@ -178,7 +178,11 @@ static TreeNode *rotate(TreeNode *node, Direction dir) {
     return new_root;
 }
 
-
+/// Evaluate the balance of a node
+///
+/// This macro evaluates the balance of a Node
+/// if NULL is passed the balance is 0 since an empty
+/// tree is balanced
 #define get_balance(node) ((node) == (NULL) ? (0) : (height(node->right_node) - height(node->left_node)))
 
 /// Balance the given node if necessary
@@ -211,7 +215,7 @@ static TreeNode *balance_node(TreeNode *node) {
         }
         // Finally rotate the node itself
         return rotate(node, Left);
-    } else { 
+    } else {
         return node;
     }
 }
