@@ -13,6 +13,7 @@
 
 
 int main(void) {
+    int zero = 0;
     int one = 1;
     int two = 2;
     int three = 3;
@@ -26,10 +27,12 @@ int main(void) {
     tree_insert(new_tree, &four);
     tree_insert(new_tree, &five);
     tree_insert(new_tree, &six);
+    tree_insert(new_tree, &zero);
 
-    assert(&six == tree_lookup(new_tree, to_ptr(6), sizeof(int)));
+    // new_tree->root->right_node = balance_node(new_tree->root->right_node);
+    // printf("%ld\n", node_height(new_tree->root->right_node->left_node));
+    // printf("%ld\n", node_height(new_tree->root->right_node->right_node));
 
-    //new_tree->root = balance_node(new_tree->root);
-    printf("%ld\n", get_balance(new_tree->root));
-
+    assert(new_tree->root->right_node->left_node->value == &five);
+    assert(new_tree->root->right_node->right_node->value);
 }

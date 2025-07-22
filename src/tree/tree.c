@@ -64,7 +64,7 @@ typedef struct _Tree {
 ///
 /// Returns:
 ///   pointer to a [TreeNode] or NULL if [alloc] returns NULL
-static TreeNode *node_init(const void *value, const size_t value_size, TreeNode *partent, const Alloc alloc) {
+static TreeNode *node_init(const void *value, const size_t value_size, TreeNode *parent, const Alloc alloc) {
     // Allocate new_node
     TreeNode *new_node = alloc(sizeof(TreeNode));
     if (new_node == NULL) {
@@ -74,13 +74,17 @@ static TreeNode *node_init(const void *value, const size_t value_size, TreeNode 
     // Assign fields
     new_node->left_node = NULL;
     new_node->right_node = NULL;
-    new_node->height = 0;
-    new_node->parent_node = partent;
+    new_node->height = 1;
+    new_node->parent_node = parent;
 
     // initialize space for the value
     new_node->value = value;
 
     return new_node;
+}
+
+static void node_free(TreeNode *node, DeAlloc dealloc) {
+    dealloc(node);
 }
 
 Tree *tree_init(Alloc alloc, DeAlloc dealloc, Comparator compare, size_t elem_size) {
@@ -104,11 +108,39 @@ Tree *tree_init(Alloc alloc, DeAlloc dealloc, Comparator compare, size_t elem_si
 }
 
 
+/// Get the height of the Node
+///
+/// This function returns the height of a node
+/// and returns 0 if node == NULL
+///
+/// Parameters:
+///   - node: the node to get the height from
+///
+/// Returns:
+///   the height of the node
+uint64_t node_height(const TreeNode *node) {
+    if (node == NULL) {
+        return 0;
+    }
+    return node->height;
+}
+
+
+
+
+
+
 /// Update the height of a node
 ///
-/// This macro updates the height of a node in the tree
-#define update_height(node) node->height = max(node->left_node->height, node->right_node->height)
-
+/// This function updates the height of a node in the tree
+///
+/// Parameters:
+///   - node: the node that needs to be updated
+void update_height(TreeNode *node) {
+    if (node != NULL) {
+        node->height = 1 + max(node_height(node->left_node), node_height(node->right_node));
+    }
+}
 
 
 /// Get where [node] is appended at its parent
@@ -185,20 +217,20 @@ static TreeNode *rotate(TreeNode *node, Direction dir) {
 
 
 
-/// Get the height of the Node
-///
-/// This macro evaluates the height of a node
-/// and return 0 if node == NULL
-#define node_height(node) ((node) == (NULL) ? (0) : (uint64_t)(node->height))
-
-
-
 /// Evaluate the balance of a node
 ///
-/// This macro evaluates the balance of a Node
+/// This function returns the balance of a Node
 /// if NULL is passed the balance is 0 since an empty
 /// tree is balanced
-#define get_balance(node) ((node) == (NULL) ? (0) : (int64_t)(node_height(node->left_node)) - (node_height(node->right_node)))
+///
+/// Parameters:
+///   - node: node to get the balance from
+///
+/// Returns:
+///   - the balance as a signed integer
+int64_t get_balance(const TreeNode *node) {
+    return node_height(node->left_node) - node_height(node->right_node);
+}
 
 /// Balance the given node if necessary
 ///
@@ -237,76 +269,84 @@ static TreeNode *balance_node(TreeNode *node) {
 
 
 void tree_insert(Tree *tree, void *value) {
-    // Null cannot be inserted
-    if (value == NULL) {
+    // Sanity check
+    if (value == NULL // Cannot insert NULL
+            || tree == NULL) {
         return;
     }
 
-    TreeNode *new_node = node_init(value, tree->elem_size, NULL, tree->alloc);
-    if (new_node == NULL) { // This is actually not necessary
-        return;
-    }
-
-
+    // New node to be inserted
+    TreeNode *new_node = NULL; 
     // This is the first insertion
     if (tree->root == NULL) {
+        // Create new node
+        new_node = node_init(value, tree->elem_size, NULL, tree->alloc);
+        if (new_node == NULL) { // Error check
+            return;
+        }
         tree->root = new_node;
-        tree->root->height = 1;
         return;
     }
     // Find new parent node
     TreeNode *parent = tree->root;
-    while (parent->value != NULL) {
-        // Compare value and parent
-        int compare_value = tree->compare(parent->value, value, tree->elem_size);
-
-        // Update height of parent
-        parent->height += 1;
-
-        if (compare_value < 0) { // Right
-            // Can be inserted below parent
-            if (parent->right_node == NULL) {
-                parent->right_node = new_node;
-                new_node->parent_node = parent;
-                break;
-            } else {
-                // Goto parent's right and keep going
-                parent = parent->right_node;
-            }
-        } else { // Left
-            // Can be inserted below parent
-            if (parent->left_node == NULL) {
+    while (parent != NULL) {
+        // Get comparison value
+        int64_t comp_value = tree->compare(value, parent->value, tree->elem_size);
+        if (comp_value < 0) { // Go Left 
+            if (parent->left_node == NULL) { // insert the node
+                // Create new node
+                new_node = node_init(value, tree->elem_size, parent, tree->alloc);
+                if (new_node == NULL) { // Error check
+                    return;
+                }
                 parent->left_node = new_node;
-                new_node->parent_node = parent;
+                update_height(parent);
                 break;
-            } else {
-                // Goto parent's left and keep going
-                parent = parent->left_node;
             }
+            update_height(parent);
+            parent = parent->left_node;
+        } else if (comp_value > 0) { // Go Right
+            if (parent->right_node == NULL) {
+                // Create new node
+                new_node = node_init(value, tree->elem_size, parent, tree->alloc);
+                if (new_node == NULL) { // Error check
+                    return;
+                }
+                parent->right_node = new_node;
+                update_height(parent);
+                break;
+            }
+            update_height(parent);
+            parent = parent->right_node;
+        } else { // value already exists
+            return;
         }
     }
 
-    TreeNode *inserted_par = new_node->parent_node;
-    assert(inserted_par != NULL);
-    while (true) {
-        // We are currently at the root node
-        if (inserted_par->parent_node == NULL) {
-            tree->root = balance_node(tree->root);
-            break;
-        }
-        const Direction dir = child_dir(inserted_par);
+
+    assert(new_node != NULL);
+    TreeNode *inserted_parent = parent->parent_node;
+    while (inserted_parent != NULL && inserted_parent->parent_node != NULL) {
+        update_height(inserted_parent);
+        const Direction dir = child_dir(inserted_parent);
         switch (dir) {
         case Left:
-            inserted_par->parent_node->left_node = balance_node(inserted_par);
+            inserted_parent->parent_node->left_node = balance_node(inserted_parent);
             break;
         case Right:
-            inserted_par->parent_node->left_node = balance_node(inserted_par);
+            inserted_parent->parent_node->right_node = balance_node(inserted_parent);
             break;
         case None:
             break;
         }
-        inserted_par = inserted_par->parent_node;
+        inserted_parent = inserted_parent->parent_node;
     }
+    update_height(inserted_parent);
+
+
+
+
+
 }
 
 
@@ -337,5 +377,138 @@ const void *tree_lookup(const Tree *tree, const void *value, const size_t value_
 }
 
 
+static TreeNode *find_node(const Tree *tree, const void *value, const size_t value_len) {
+    // Sanity check
+    if (tree == NULL || value == NULL || value_len == 0) {
+        return NULL;
+    }
+
+    TreeNode *parent = tree->root;
+    while (parent != NULL) {
+        // Compare value and parent
+        int compare_value = tree->compare(parent->value, value, tree->elem_size);
+
+        if (compare_value == 0) {
+            return parent;
+        }
+        if (compare_value < 0) { // Right
+            // Goto parent's right and keep going
+            parent = parent->right_node;
+        } else { // Left
+            // Goto parent's left and keep going
+            parent = parent->left_node;
+        }
+    }
+    return NULL;
+
+}
 
 
+void tree_delete(Tree *tree, const void *value, const size_t value_len) {
+    // Sanity check
+    if (tree == NULL || value == NULL || value_len == 0) {
+        return;
+    }
+
+    // Find the node to delete
+    TreeNode *node_to_delete = find_node(tree, value, value_len);
+    if (node_to_delete == NULL) { // Node was not found
+        return;
+    }
+
+    TreeNode *del_node = node_to_delete;
+    while (true) {
+        if (del_node->left_node != NULL && del_node->right_node != NULL) {
+
+            // We have to find the successor Node
+            TreeNode *next_node = del_node->right_node;
+            while (next_node->left_node != NULL) {
+                next_node = next_node->left_node;
+            }
+            // Replace value
+            del_node->value = next_node->value;
+
+            // Now delete next_node since it's a duplicate
+            del_node = next_node;
+
+
+
+        } else if (del_node->left_node != NULL) { // Replace current node with left child
+                                                  // Check if del_node is root
+            if (del_node->parent_node == NULL) {
+                tree->root = del_node->left_node;
+
+                // Rebalance
+                balance_node(tree->root);
+            }
+            TreeNode *del_parent = del_node->parent_node;
+
+            // Get where del_node is at its parent
+            const Direction dir = child_dir(del_node);
+            switch (dir) {
+                case Left:
+                    // Set parents child
+                    del_node->parent_node->left_node = del_node->left_node;
+
+                    // delete delete_node
+                    tree->dealloc(del_node);
+
+                    // Rebalance at parent
+                    balance_node(del_parent);
+                    break;
+
+                case Right:
+                    // Set parents child
+                    del_node->parent_node->right_node = del_node->left_node;
+
+                    // delete delete_node
+                    tree->dealloc(del_node);
+
+                    // Rebalance at parent
+                    balance_node(del_parent);
+                    break;
+                case None:
+                    return;
+                    break;
+            }
+        } else {
+            // Check if del_node is root
+            if (del_node->parent_node == NULL) {
+                tree->root = del_node->right_node;
+
+                // Rebalance
+                balance_node(tree->root);
+            }
+            TreeNode *del_parent = del_node->parent_node;
+
+            // Get where del_node is at its parent
+            const Direction dir = child_dir(del_node);
+            switch (dir) {
+                case Left:
+                    // Set parents child
+                    del_node->parent_node->left_node = del_node->right_node;
+
+                    // delete delete_node
+                    tree->dealloc(del_node);
+
+                    // Rebalance at parent
+                    balance_node(del_parent);
+                    break;
+
+                case Right:
+                    // Set parents child
+                    del_node->parent_node->right_node = del_node->right_node;
+
+                    // delete delete_node
+                    tree->dealloc(del_node);
+
+                    // Rebalance at parent
+                    balance_node(del_parent);
+                    break;
+                case None:
+                    return;
+                    break;
+            }
+        }
+    }
+}
