@@ -100,6 +100,18 @@ typedef struct _RefList RefList;
 RefList *reflist_init(const Allocator allocator);
 
 
+/// Initialize a dynamic list
+///
+/// This function initializes a dynamic list with a default
+/// Allocator
+///
+/// Note:
+/// This list only stores the pointers not the values themselves.
+///
+///
+/// Returns:
+///   A handle to a dynamic list or NULL on failure to allocate memory
+RefList *reflist_init_def();
 
 
 /// Clean up a dynamic list

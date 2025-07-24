@@ -56,6 +56,25 @@ DynList *reflist_init(const Allocator allocator, const size_t elem_size) {
 
 
 
+/// Initialize a dynamic list
+///
+/// This function initializes a dynamic list with a default
+/// Allocator
+///
+/// Note:
+/// This list only stores the pointers not the values themselves.
+///
+/// Parameters:
+///   - allocator: Memory allocator to define how memory has to
+///     be allocated. Use '&default_allocator' by default if you don't know
+///     what to use.
+///
+/// Returns:
+///   A handle to a dynamic list or NULL on failure to allocate memory
+DynList *reflist_init_def(const size_t elem_size) {
+    return reflist_init(default_allocator, elem_size);
+}
+
 /// Clean up a dynamic list
 ///
 /// This function frees the memory that is used by this
@@ -163,6 +182,6 @@ void *reflist_at(const DynList *list, const uint64_t index) {
 ///   - action: function that operates on the values
 void reflist_action(const DynList *list, void (*action)(void *)) {
     for (uint64_t i = 0; i < list->len; ++i) {
-        action(list->storage[i]);
+        action(list->storage + list->elem_size * i);
     }
 }
