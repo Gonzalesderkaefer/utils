@@ -47,12 +47,8 @@ static void *__malloc_alloc(void *context, size_t size) { return malloc(size); }
 static void __malloc_free(void *context, void *ptr) { return free(ptr); }
 static void *__malloc_realloc(void *context, void *ptr, size_t new_size) { return realloc(ptr, new_size); }
 
-static Allocator default_allocator = {
-    .context = NULL,
-    .alloc = __malloc_alloc,
-    .dealloc = __malloc_free,
-    .realloc = __malloc_realloc
-};
+
+#define default_allocator create_allocator(NULL, __malloc_alloc, __malloc_free, __malloc_realloc)
 
 
 /// This type represents functions that are used to allocate memory
@@ -69,3 +65,101 @@ typedef void (*FreeFunc)(void *);
 
 
 #endif // JAZZY_ALLOCATOR
+
+
+#ifndef DYNLIST_H
+#define DYNLIST_H
+
+
+/// Handle to a dynamic list
+///
+/// This type is used as a handle to a 
+/// dynamic list and a pointer to this is used
+/// to pass into functions and perform operations on.
+typedef struct _DynList DynList;
+
+
+/// Initialize a dynamic list
+///
+/// This function initializes a dynamic list.
+/// An Allocator is used to define how the memory for
+/// this list is supposed to be managed. If you don't
+/// know what allocator to use, just use '&default_allocator'
+///
+/// Note:
+/// This list only stores the pointers not the values themselves.
+///
+/// Parameters:
+///   - allocator: Memory allocator to define how memory has to
+///     be allocated. Use '&default_allocator' by default if you don't know
+///     what to use.
+///
+/// Returns:
+///   A handle to a dynamic list or NULL on failure to allocate memory
+DynList *dynlist_init(const Allocator allocator, const size_t elem_size);
+
+
+
+
+/// Initialize a dynamic list
+///
+/// This function initializes a dynamic list with a default
+/// Allocator
+///
+/// Note:
+/// This list only stores the pointers not the values themselves.
+///
+/// Parameters:
+///   - allocator: Memory allocator to define how memory has to
+///     be allocated. Use '&default_allocator' by default if you don't know
+///     what to use.
+///
+/// Returns:
+///   A handle to a dynamic list or NULL on failure to allocate memory
+DynList *dynlist_init_def(const size_t elem_size);
+
+/// Clean up a dynamic list
+///
+/// This function frees the memory that is used by this
+/// dynamic list
+///
+/// Paramters:
+///   - list: handle to a dynamic list that was returned by `dynlist_init()`
+void dynlist_free(DynList *list);
+
+
+
+/// Push a value into the list
+///
+/// This function pushes pointer to [value] into the
+/// dynamic list. The value is not copied.
+///
+/// Parameters:
+///   - list: handle to a dynamic list that was returned by `dynlist_init()`
+///   - value: a reference(pointer) to a value that needs to be pushed
+void dynlist_push(DynList *list, const void *value);
+
+
+/// Get the value at [index]
+///
+/// This function gives the value that is located at [index]
+///
+/// Parameters:
+///   - list: handle to a list that was returned by `dynlist_init()`
+///   - index: index to lookup at
+///
+/// Returns:
+///   A pointer to the value or NULL if the index is invalid
+void *dynlist_at(const DynList *list, const uint64_t index);
+
+/// Perform [action] on all elements
+///
+/// This function performs an action on all elements in the
+/// list from first to last and can mutate the values.
+///
+/// Parameters:
+///   - list: handle to a list that was returned by `dynlist_init()`
+///   - action: function that operates on the values
+void dynlist_action(const DynList *list, void (*action)(void *));
+
+#endif // DYNLIST_H

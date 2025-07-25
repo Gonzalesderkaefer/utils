@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "../src/list/reflist/reflist.h"
+#include "../src/list/dynlist/dynlist.h"
 
 #if (__STDC_VERSION__ >= 202300L)
 #define to_ptr(value) (typeof(value) [1]){value}
@@ -12,7 +13,7 @@
 
 
 
-void reflist_test() {
+void test_reflist() {
     RefList *list = reflist_init_def();
 
     int one = 1;
@@ -51,6 +52,36 @@ void reflist_test() {
 }
 
 
+void test_dynlist() {
+    DynList *list = dynlist_init_def(sizeof(int));
+
+    int one = 1;
+    int two = 2;
+    int three = 3;
+    int four = 4;
+    int five = 5;
+    int six = 6;
+    int seven = 7;
+    int eight = 8;
+    int nine = 9;
+    int ten = 10;
+    int eleven = 11;
+
+    dynlist_push(list, &one); 
+    dynlist_push(list, &two); 
+    dynlist_push(list, &three);
+    dynlist_push(list, &four);
+    dynlist_push(list, &five);
+    dynlist_push(list, &six); 
+    dynlist_push(list, &seven);
+    dynlist_push(list, &eight);
+    dynlist_push(list, &nine);
+    dynlist_push(list, &ten); 
+    dynlist_push(list, &eleven);
+
+    dynlist_free(list);
+}
+
 int main(void) {
-    reflist_test();
+    test_dynlist();
 }

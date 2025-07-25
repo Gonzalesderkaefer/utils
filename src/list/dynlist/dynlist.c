@@ -91,6 +91,9 @@ void dynlist_free(DynList *list) {
     // Save allcoator
     Allocator alloc = list->allocator;
 
+    // Free Storage
+    alloc.dealloc(alloc.context, list->storage);
+
     // Free list
     alloc.dealloc(alloc.context, list);
 }
