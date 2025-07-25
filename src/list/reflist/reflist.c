@@ -5,7 +5,6 @@
 #include <stddef.h>
 
 
-
 /// Handle to a dynamic list
 ///
 /// This type is used as a handle to a 
@@ -86,8 +85,12 @@ void reflist_free(RefList *list) {
     // Save allcoator
     Allocator alloc = list->allocator;
 
+    // Free storage
+    alloc.dealloc(alloc.context, list->storage);
+
     // Free list
     alloc.dealloc(alloc.context, list);
+
 }
 
 

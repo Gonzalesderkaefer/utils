@@ -37,7 +37,7 @@ typedef struct _DynList {
 ///
 /// Returns:
 ///   A handle to a dynamic list or NULL on failure to allocate memory
-DynList *reflist_init(const Allocator allocator, const size_t elem_size) {
+DynList *dynlist_init(const Allocator allocator, const size_t elem_size) {
     // Allocate dynamic List
     DynList *new_list = allocator.alloc(allocator.context, sizeof(DynList));
     if (new_list == NULL) {
@@ -71,8 +71,8 @@ DynList *reflist_init(const Allocator allocator, const size_t elem_size) {
 ///
 /// Returns:
 ///   A handle to a dynamic list or NULL on failure to allocate memory
-DynList *reflist_init_def(const size_t elem_size) {
-    return reflist_init(default_allocator, elem_size);
+DynList *dynlist_init_def(const size_t elem_size) {
+    return dynlist_init(default_allocator, elem_size);
 }
 
 /// Clean up a dynamic list
@@ -81,8 +81,8 @@ DynList *reflist_init_def(const size_t elem_size) {
 /// dynamic list
 ///
 /// Paramters:
-///   - list: handle to a dynamic list that was returned by `reflist_init()`
-void reflist_free(DynList *list) {
+///   - list: handle to a dynamic list that was returned by `dynlist_init()`
+void dynlist_free(DynList *list) {
     // Sanity check
     if (list == NULL) {
         return;
@@ -103,9 +103,9 @@ void reflist_free(DynList *list) {
 /// dynamic list. The value is not copied.
 ///
 /// Parameters:
-///   - list: handle to a dynamic list that was returned by `reflist_init()`
+///   - list: handle to a dynamic list that was returned by `dynlist_init()`
 ///   - value: a reference(pointer) to a value that needs to be pushed
-void reflist_push(DynList *list, const void *value) {
+void dynlist_push(DynList *list, const void *value) {
     // Check if list storage needs to be initialized
     if (list->storage == NULL) {
         list->storage = list->allocator.alloc(list->allocator.context, list->elem_size * 10);
@@ -159,12 +159,12 @@ void reflist_push(DynList *list, const void *value) {
 /// This function gives the value that is located at [index]
 ///
 /// Parameters:
-///   - list: handle to a list that was returned by `reflist_init()`
+///   - list: handle to a list that was returned by `dynlist_init()`
 ///   - index: index to lookup at
 ///
 /// Returns:
 ///   A pointer to the value or NULL if the index is invalid
-void *reflist_at(const DynList *list, const uint64_t index) {
+void *dynlist_at(const DynList *list, const uint64_t index) {
     if (index >= list->len) {
         return NULL;
     }
@@ -178,9 +178,9 @@ void *reflist_at(const DynList *list, const uint64_t index) {
 /// list from first to last and can mutate the values.
 ///
 /// Parameters:
-///   - list: handle to a list that was returned by `reflist_init()`
+///   - list: handle to a list that was returned by `dynlist_init()`
 ///   - action: function that operates on the values
-void reflist_action(const DynList *list, void (*action)(void *)) {
+void dynlist_action(const DynList *list, void (*action)(void *)) {
     for (uint64_t i = 0; i < list->len; ++i) {
         action(list->storage + list->elem_size * i);
     }

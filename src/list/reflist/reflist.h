@@ -47,12 +47,7 @@ static void *__malloc_alloc(void *context, size_t size) { return malloc(size); }
 static void __malloc_free(void *context, void *ptr) { return free(ptr); }
 static void *__malloc_realloc(void *context, void *ptr, size_t new_size) { return realloc(ptr, new_size); }
 
-static Allocator default_allocator = {
-    .context = NULL,
-    .alloc = __malloc_alloc,
-    .dealloc = __malloc_free,
-    .realloc = __malloc_realloc
-};
+#define default_allocator create_allocator(NULL, __malloc_alloc, __malloc_free, __malloc_realloc)
 
 
 /// This type represents functions that are used to allocate memory

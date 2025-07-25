@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "../src/tree/tree.c"
+#include "../src/list/reflist/reflist.h"
 
 #if (__STDC_VERSION__ >= 202300L)
 #define to_ptr(value) (typeof(value) [1]){value}
@@ -12,24 +12,45 @@
 
 
 
-int main(void) {
+void reflist_test() {
+    RefList *list = reflist_init_def();
+
     int one = 1;
     int two = 2;
     int three = 3;
     int four = 4;
     int five = 5;
     int six = 6;
-    Tree *new_tree = tree_init(malloc, free, memcmp, sizeof(int));
-    tree_insert(new_tree, &three);
-    tree_insert(new_tree, &two);
-    tree_insert(new_tree, &one);
-    tree_insert(new_tree, &four);
-    tree_insert(new_tree, &five);
-    tree_insert(new_tree, &six);
+    int seven = 7;
+    int eight = 8;
+    int nine = 9;
+    int ten = 10;
+    int eleven = 11;
 
-    assert(&six == tree_lookup(new_tree, to_ptr(6), sizeof(int)));
+    reflist_push(list, &one); 
+    reflist_push(list, &two); 
+    reflist_push(list, &three);
+    reflist_push(list, &four);
+    reflist_push(list, &five);
+    reflist_push(list, &six); 
+    reflist_push(list, &seven);
+    reflist_push(list, &eight);
+    reflist_push(list, &nine);
+    reflist_push(list, &ten); 
+    reflist_push(list, &eleven);
 
-    //new_tree->root = balance_node(new_tree->root);
-    printf("%ld\n", get_balance(new_tree->root));
+    assert(reflist_at(list, 0) == &one);
+    assert(reflist_at(list, 3) == &four);
+    assert(reflist_at(list, 10) == &eleven);
 
+
+
+
+
+    reflist_free(list);
+}
+
+
+int main(void) {
+    reflist_test();
 }
