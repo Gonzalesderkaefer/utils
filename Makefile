@@ -45,7 +45,7 @@ HEADERS := $(SOURCES:.c=.h)
 
 
 export: $(OBJECTS)
-	@echo "Linking $^"
+	@echo "Linking..."
 	@mkdir -p target
 	@ar rcs $(LIBDIR)/libutils.a $(OBJECTS)
 	@cp $(LIBDIR)/libutils.a $(TARDIR)/

@@ -49,6 +49,7 @@ DynList *dynlist_init(const Allocator allocator, const size_t elem_size) {
     new_list->storage = NULL;
     new_list->cap = 0;
     new_list->len = 0;
+    new_list->elem_size = elem_size;
 
     return new_list;
 }

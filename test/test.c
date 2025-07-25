@@ -76,8 +76,16 @@ void test_dynlist() {
     dynlist_push(list, &seven);
     dynlist_push(list, &eight);
     dynlist_push(list, &nine);
-    dynlist_push(list, &ten); 
+    dynlist_push(list, &ten);
     dynlist_push(list, &eleven);
+
+
+    printf("%d\n", *(int *)dynlist_at(list, 0));
+    printf("%d\n", *(int *)dynlist_at(list, 10));
+
+
+
+
 
     dynlist_free(list);
 }
