@@ -28,11 +28,14 @@ BUILDDIR := build
 # Export dir
 TARDIR := target
 
+# Unity tardir
+UNITY_TARDIR := target/unity
+
 # All source files
 SOURCES := $(shell find $(SRCDIR) -type f -name *.c)
 
 # Derive source files for unity build from sources
-UNITYSRC := $(patsubst $(SRCDIR)/%,$(TARDIR)/%,$(SOURCES))
+UNITYSRC := $(patsubst $(SRCDIR)/%,$(UNITY_TARDIR)/%,$(SOURCES))
 
 # Derive Object files from source files
 OBJECTS := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.c=.o)) $(AOBJECTS)
@@ -41,8 +44,8 @@ OBJECTS := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.c=.o)) $(AOBJECTS)
 HEADERS := $(SOURCES:.c=.h)
 
 
-export: clean $(OBJECTS)
-	@echo "Linking $^"
+export: $(OBJECTS)
+	@echo "Linking..."
 	@mkdir -p target
 	@ar rcs $(LIBDIR)/libutils.a $(OBJECTS)
 	@cp $(LIBDIR)/libutils.a $(TARDIR)/
@@ -51,10 +54,10 @@ export: clean $(OBJECTS)
 	done
 
 
-unity: clean $(UNITYSRC)
+unity: $(UNITYSRC)
 
 # Default target for source files
-$(TARDIR)/%.c: $(SRCDIR)/%.c
+$(UNITY_TARDIR)/%.c: $(SRCDIR)/%.c
 	mkdir -p $(shell dirname $@)
 	cp $< $@
 
