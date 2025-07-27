@@ -128,6 +128,16 @@ DynList *dynlist_init_def(const size_t elem_size);
 void dynlist_free(DynList *list);
 
 
+/// Get the length of the list
+///
+/// This function returns the length of the 
+/// list as
+/// 
+/// Parameters:
+///   - list: handle to a dynamic list that was returned by `dynlist_init()`
+/// Returns:
+///   The number of elements in the list
+size_t dynlinst_len(const DynList *list);
 
 /// Push a value into the list
 ///

@@ -15,7 +15,7 @@ typedef struct _DynList {
     size_t cap;
     size_t len;
     size_t elem_size;
-    void *storage;
+    char *storage;
     Allocator allocator;
 } DynList;
 
@@ -27,13 +27,14 @@ typedef struct _DynList {
 /// this list is supposed to be managed. If you don't
 /// know what allocator to use, just use '&default_allocator'
 ///
-/// Note:
-/// This list only stores the pointers not the values themselves.
 ///
 /// Parameters:
 ///   - allocator: Memory allocator to define how memory has to
 ///     be allocated. Use '&default_allocator' by default if you don't know
 ///     what to use.
+///   - elem_size: size of the individual elements that will
+///     live in the list. Use `sizeof()` if you are not sure what
+///     size the elements have
 ///
 /// Returns:
 ///   A handle to a dynamic list or NULL on failure to allocate memory
@@ -62,13 +63,11 @@ DynList *dynlist_init(const Allocator allocator, const size_t elem_size) {
 /// This function initializes a dynamic list with a default
 /// Allocator
 ///
-/// Note:
-/// This list only stores the pointers not the values themselves.
-///
 /// Parameters:
-///   - allocator: Memory allocator to define how memory has to
-///     be allocated. Use '&default_allocator' by default if you don't know
-///     what to use.
+///   - elem_size: size of the individual elements that will
+///     live in the list. Use `sizeof()` if you are not sure what
+///     size the elements have
+///
 ///
 /// Returns:
 ///   A handle to a dynamic list or NULL on failure to allocate memory
@@ -100,6 +99,20 @@ void dynlist_free(DynList *list) {
 }
 
 
+/// Get the length of the list
+///
+/// This function returns the length of the 
+/// list as
+/// 
+/// Parameters:
+///   - list: handle to a dynamic list that was returned by `dynlist_init()`
+/// Returns:
+///   The number of elements in the list
+size_t dynlinst_len(const DynList *list) {
+    return list->len;
+}
+
+
 
 /// Push a value into the list
 ///
@@ -112,35 +125,50 @@ void dynlist_free(DynList *list) {
 void dynlist_push(DynList *list, const void *value) {
     // Check if list storage needs to be initialized
     if (list->storage == NULL) {
+        // Allocate storage
         list->storage = list->allocator.alloc(list->allocator.context, list->elem_size * 10);
         if (list->storage == NULL) {
             return;
         }
+        // Set capacity
         list->cap = 10;
+
+        // Zero out
+        memset(list->storage, 0, list->elem_size * list->cap);
 
         // Get pointer to insert at.
         void *ptr_to_insert = list->storage + list->elem_size * list->len;
+
         // Copy/Append value to the buffer
         memcpy(ptr_to_insert, value, list->elem_size);
+
         // List is now longer
         list->len++;
 
-    } else if (list->cap <= list->len) {
+    } else if (list->cap <= list->len - 1) {
         // Allocate storage for new storage (its twice the size as before)
         void *new_storage = list->allocator.alloc(list->allocator.context, list->elem_size  * list->cap * 2);
         if (new_storage == NULL) {
             return;
         }
 
+        // Zero out
+        memset(new_storage, 0, list->elem_size * list->cap * 2);
+
         // Copy old values into new buffer 
         memcpy(new_storage, list->storage, list->elem_size * list->cap);
 
         // Get pointer to insert at.
         void *ptr_to_insert = new_storage + list->elem_size * list->len;
+
         // Copy/Append value to the buffer
         memcpy(ptr_to_insert, value, list->elem_size);
+
         // List is now longer
         list->len++;
+
+        // Update list capacity
+        list->cap *= 2;
 
         // Delete old storage
         list->allocator.dealloc(list->allocator.context, list->storage);
