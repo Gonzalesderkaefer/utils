@@ -162,6 +162,21 @@ void dynlist_push(DynList *list, const void *value);
 ///   A pointer to the value or NULL if the index is invalid
 void *dynlist_at(const DynList *list, const uint64_t index);
 
+
+/// Get the contents of [list]
+///
+/// This function returns a pointer to the underlying 
+/// storage of the list which is NULL terminated
+///
+/// Parameters:
+///   - list: handle to a list that was returned by `dynlist_init()`
+///
+/// Return:
+///   Pointer to the underlying storage of [list].
+void *dynlist_arr(const DynList *list) {
+
+
+
 /// Perform [action] on all elements
 ///
 /// This function performs an action on all elements in the

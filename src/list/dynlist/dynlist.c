@@ -204,6 +204,20 @@ void *dynlist_at(const DynList *list, const uint64_t index) {
     return list->storage + list->elem_size * index;
 }
 
+/// Get the contents as an array
+///
+/// This function returns a pointer to the underlying 
+/// storage of the list which is NULL terminated
+///
+/// Parameters:
+///   - list: handle to a list that was returned by `dynlist_init()`
+///
+/// Return:
+///   Pointer to the underlying storage of [list].
+void *dynlist_arr(const DynList *list) {
+    return list->storage;
+}
+
 /// Perform [action] on all elements
 ///
 /// This function performs an action on all elements in the
