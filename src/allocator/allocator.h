@@ -1,5 +1,5 @@
-#ifndef ALLOCATOR_H
-#define ALLOCATOR_H
+#ifndef JAZZY_ALLOC_H
+#define JAZZY_ALLOC_H
 
 // Libraries
 #include <stddef.h>
@@ -46,10 +46,24 @@ static void *__malloc_alloc(void *context, size_t size) { return malloc(size); }
 static void __malloc_free(void *context, void *ptr) { return free(ptr); }
 static void *__malloc_realloc(void *context, void *ptr, size_t new_size) { return realloc(ptr, new_size); }
 
-static Allocator default_allocator = {
-    .context = NULL,
-    .alloc = __malloc_alloc,
-    .dealloc = __malloc_free,
-    .realloc = __malloc_realloc
-};
-#endif // ALLOCATOR_H
+/// Macro for the default allocator
+#define default_allocator create_allocator(NULL, __malloc_alloc, __malloc_free, __malloc_realloc)
+
+
+/* The following part is seperate from above */
+
+/// This type represents functions that are used to allocate memory
+/// the function 'malloc' is of this type
+typedef void *(*AllocFunc)(size_t);
+
+/// This type represents functions that are used to reallocate memory
+/// the function 'realloc' is of this type
+typedef void *(*ReAllocFunc)(void *, size_t);
+
+/// This type represents functions that are used to free memory
+/// the function 'free' is of this type
+typedef void (*FreeFunc)(void *);
+
+
+
+#endif // JAZZY_ALLOC_H
