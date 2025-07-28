@@ -1,10 +1,9 @@
-#ifndef JAZZY_ALLOCATOR
-#define JAZZY_ALLOCATOR
+#ifndef JAZZY_ALLOC_H
+#define JAZZY_ALLOC_H
 
 // Libraries
 #include <stddef.h>
 #include <stdlib.h>
-#include <stdint.h>
 
 /// This struct exists to encapsulate an Allocator.
 /// It is used to initialize Data structures etc.
@@ -47,9 +46,11 @@ static void *__malloc_alloc(void *context, size_t size) { return malloc(size); }
 static void __malloc_free(void *context, void *ptr) { return free(ptr); }
 static void *__malloc_realloc(void *context, void *ptr, size_t new_size) { return realloc(ptr, new_size); }
 
-
+/// Macro for the default allocator
 #define default_allocator create_allocator(NULL, __malloc_alloc, __malloc_free, __malloc_realloc)
 
+
+/* The following part is seperate from above */
 
 /// This type represents functions that are used to allocate memory
 /// the function 'malloc' is of this type
@@ -63,12 +64,15 @@ typedef void *(*ReAllocFunc)(void *, size_t);
 /// the function 'free' is of this type
 typedef void (*FreeFunc)(void *);
 
-
-#endif // JAZZY_ALLOCATOR
+#endif // JAZZY_ALLOC_H
 
 
 #ifndef DYNLIST_H
 #define DYNLIST_H
+
+// Libraries
+#include <stdint.h>
+
 
 
 /// Handle to a dynamic list
@@ -173,7 +177,7 @@ void *dynlist_at(const DynList *list, const uint64_t index);
 ///
 /// Return:
 ///   Pointer to the underlying storage of [list].
-void *dynlist_arr(const DynList *list) {
+void *dynlist_arr(const DynList *list);
 
 
 
