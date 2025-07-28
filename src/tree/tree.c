@@ -1,13 +1,5 @@
-
-
-
-
-
-
-
-
-
-
+// Header file
+#include "tree.h"
 
 // Libraries
 #include <assert.h>
@@ -21,17 +13,17 @@
 /********************************* Public *************************************/
 
 // TODO: DOCS
-typedef void *(*Alloc)(size_t);
+// typedef void *(*Alloc)(size_t);
 
 
 // TODO: DOCS
-typedef void (*DeAlloc)(void *);
+//typedef void (*DeAlloc)(void *);
 
 // TODO: DOCS
 typedef int (*Comparator)(const void *, const void *, size_t);
 
 // TODO: DOCS
-typedef struct _Tree Tree;
+//typedef struct _Tree Tree;
 
 
 
@@ -66,7 +58,7 @@ typedef enum {
     RightRot,
 } RotationDir;
 
-static TreeNode *node_init(const void *value, const TreeNode *parent, Alloc alloc) {
+static TreeNode *node_init(const void *value, const TreeNode *parent, AllocFunc alloc) {
     // Allocate Node
     TreeNode *new_node = malloc(sizeof(TreeNode));
     if (new_node == NULL) {
@@ -118,7 +110,7 @@ static int64_t node_get_balance(const TreeNode *node) {
     }
 }
 
-static void update_height(TreeNode *node) {
+static void node_update_height(TreeNode *node) {
     if (node == NULL) {
         return;
     }
@@ -127,7 +119,7 @@ static void update_height(TreeNode *node) {
 
 
 
-static TreeNode *rotate(TreeNode *node, const RotationDir dir) {
+static TreeNode *node_rotate(TreeNode *node, const RotationDir dir) {
     // NULL checks
     if (node == NULL) {
         return NULL;
@@ -143,16 +135,16 @@ static TreeNode *rotate(TreeNode *node, const RotationDir dir) {
         old_root->right = inner_grandchild;
         old_root->parent = new_root;
         new_root->parent = old_parent;
-        update_height(old_root);
-        update_height(new_root);
+        node_update_height(old_root);
+        node_update_height(new_root);
         break;
     case Right:
         new_root = node->left;
         inner_grandchild = new_root->right;
         new_root->right = old_root;
         old_root->left = inner_grandchild;
-        update_height(old_root);
-        update_height(new_root);
+        node_update_height(old_root);
+        node_update_height(new_root);
         break;
     }
     return new_root;
@@ -162,7 +154,7 @@ static TreeNode *rotate(TreeNode *node, const RotationDir dir) {
 
 
 
-static TreeNode *balance_node(TreeNode *node) {
+static TreeNode *node_balance(TreeNode *node) {
     if (node == NULL) {
         return NULL;
     }
@@ -170,22 +162,22 @@ static TreeNode *balance_node(TreeNode *node) {
     if (balance_value <= -2) { // Is right heavy -> rotate left
         int inner_bal = node_get_balance(node->right);
         if (inner_bal >= 1) {
-            node->right = rotate(node->right, RightRot);
+            node->right = node_rotate(node->right, RightRot);
         }
-        return rotate(node, LeftRot);
+        return node_rotate(node, LeftRot);
 
     } else if (balance_value >= 2) { // Is left heavy -> rotate right
         int inner_bal = node_get_balance(node->left);
         if (inner_bal <= -1) {
-            node->left = rotate(node->left, LeftRot);
+            node->left = node_rotate(node->left, LeftRot);
         }
-        return rotate(node, RightRot);
+        return node_rotate(node, RightRot);
     }
     return node;
 }
 
 
-static void node_free(DeAlloc dealloc, TreeNode *node) {
+static void node_free(FreeFunc dealloc, TreeNode *node) {
     dealloc(node);
 }
 
@@ -197,19 +189,20 @@ static void node_free(DeAlloc dealloc, TreeNode *node) {
 typedef struct _Tree {
     const size_t elem_size;
     TreeNode *root;
-    Alloc alloc;
-    DeAlloc dealloc;
+    AllocFunc alloc;
+    FreeFunc dealloc;
     Comparator comp;
 } Tree;
 
 
-Tree *tree_init(const size_t elem_size, Alloc alloc, DeAlloc dealloc, Comparator comp) {
+Tree *tree_init(const size_t elem_size, AllocFunc alloc, FreeFunc dealloc, Comparator comp) {
     // Allcoate local tree
     Tree local_tree = {
         .elem_size = elem_size,
         .alloc = alloc,
         .dealloc = dealloc,
         .root = NULL,
+        .comp = comp,
     };
 
 
@@ -223,6 +216,29 @@ Tree *tree_init(const size_t elem_size, Alloc alloc, DeAlloc dealloc, Comparator
     return new_tree;
 }
 
+
+Tree *tree_init_def(const size_t elem_size, const Comparator comp) {
+    // Allcoate local tree
+    Tree local_tree = {
+        .elem_size = elem_size,
+        .alloc = malloc,
+        .dealloc = free,
+        .root = NULL,
+        .comp = comp,
+    };
+
+    // Declare default allocator (to prevent warnings)
+    Allocator def_alloc = default_allocator;
+
+    // Allocate space on heap
+    Tree *new_tree = def_alloc.alloc(NULL, sizeof(Tree));
+    if (new_tree == NULL) {
+        return NULL;
+    }
+    memcpy(new_tree, &local_tree, sizeof(Tree));
+
+    return new_tree;
+}
 
 void tree_insert(Tree *tree, const void *value) {
     // Sanity check
@@ -281,7 +297,7 @@ void tree_insert(Tree *tree, const void *value) {
 
     // update heights
     while (parent != NULL) {
-        update_height(parent);
+        node_update_height(parent);
         parent = parent->parent;
     }
 
@@ -293,13 +309,13 @@ void tree_insert(Tree *tree, const void *value) {
 
     switch (dir) {
     case Left:
-        g_parent->parent->left = balance_node(g_parent);
+        g_parent->parent->left = node_balance(g_parent);
         break;
     case Right:
-        g_parent->parent->right = balance_node(g_parent);
+        g_parent->parent->right = node_balance(g_parent);
         break;
     case Root:
-        tree->root = balance_node(g_parent);
+        tree->root = node_balance(g_parent);
         break;
     case Fail:
         break;
@@ -307,7 +323,7 @@ void tree_insert(Tree *tree, const void *value) {
 }
 
 
-static const TreeNode *lookup_node(const Tree *tree, const void *value) {
+static const TreeNode *tree_lookup_node(const Tree *tree, const void *value) {
     const TreeNode *cur_node = tree->root;
     while (cur_node != NULL) {
         int compare_value = tree->comp(value, cur_node->value, tree->elem_size);
@@ -329,7 +345,7 @@ const void *tree_lookup(const Tree *tree, const void *value) {
     }
 
     // Find node
-    const TreeNode *found_node = lookup_node(tree, value);
+    const TreeNode *found_node = tree_lookup_node(tree, value);
 
     // return value
     return found_node->value;
@@ -337,7 +353,7 @@ const void *tree_lookup(const Tree *tree, const void *value) {
 }
 
 
-static void free_nodes(TreeNode *root, DeAlloc dealloc) {
+static void free_nodes(TreeNode *root, FreeFunc dealloc) {
     if (root == NULL) {
         return;
     } else if (root->left == NULL && root->right == NULL) {
@@ -357,7 +373,7 @@ void tree_delete(Tree *tree, const void *value) {
     }
 
     // find node to delete
-    TreeNode *to_delete = (TreeNode *) lookup_node(tree, value);
+    TreeNode *to_delete = (TreeNode *) tree_lookup_node(tree, value);
     TreeNode *to_del_parent = to_delete->parent;
     if (to_delete == NULL) {
         return;
@@ -440,13 +456,13 @@ void tree_delete(Tree *tree, const void *value) {
 
         switch (dir) {
         case Left:
-            to_del_parent->parent->left = balance_node(to_del_parent);
+            to_del_parent->parent->left = node_balance(to_del_parent);
             break;
         case Right:
-            to_del_parent->parent->right = balance_node(to_del_parent);
+            to_del_parent->parent->right = node_balance(to_del_parent);
             break;
         case Root:
-            tree->root = balance_node(to_del_parent);
+            tree->root = node_balance(to_del_parent);
             break;
         case Fail:
             break;
@@ -459,7 +475,7 @@ void tree_free(Tree *tree) {
     // Free all nodes
     free_nodes(tree->root, tree->dealloc);
 
-    DeAlloc dealloc = tree->dealloc;
+    FreeFunc dealloc = tree->dealloc;
     dealloc(tree);
 }
 
