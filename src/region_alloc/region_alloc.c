@@ -178,6 +178,73 @@ void *r_alloc(RegAlloc *region_alloc, size_t size){
 
 
 
+
+
+void *r_calloc(RegAlloc *region_alloc, size_t size){
+    // Sanity check
+    if (region_alloc == NULL) {
+        return NULL;
+    }
+    // Allocate first block if needed
+    if (region_alloc->first == NULL) {
+        Block *new_block;
+        if (size > blocksize) {
+            new_block = blk_init_sized(size);
+        } else {
+            new_block = blk_init();
+        }
+
+        if (new_block == NULL) {
+            return NULL;
+        }
+
+        // Assign to struct
+        region_alloc->first = new_block;
+        region_alloc->current = new_block;
+    }
+
+    // Get current block
+    Block *cur_blk = region_alloc->current;
+
+    // Check if custom block needs to be allocated
+    if (size > blocksize) {
+        Block *new_blk = blk_init_sized(size);
+        if (new_blk != NULL) {
+            return NULL;
+        }
+
+        // Get new pointer
+        void *ptr = blk_alloc(new_blk, size, true);
+        if (ptr == NULL) {
+            return NULL;
+        }
+
+        // Make new block the predecessor of cur_blk;
+        new_blk->next = cur_blk;
+        new_blk->prev = cur_blk->prev;
+        cur_blk->prev = new_blk;
+
+        return ptr;
+    } else {
+        void *ptr = blk_alloc(cur_blk, size, false);
+        if (ptr == NULL) {
+            // Allocate new block
+            Block *new_blk = blk_init();
+            if (new_blk == NULL) {
+                return NULL;
+            }
+            // Allocate in block
+            ptr = blk_alloc(new_blk, size, false);
+            assert(new_blk != NULL); // This must work
+
+            // Set next and prev refs accordingly
+            new_blk->prev = cur_blk;
+            cur_blk->next = new_blk;
+        }
+        return ptr;
+    }
+}
+
 void r_free(RegAlloc *region_alloc) {
 
     Block *cur_blk = region_alloc->first;
