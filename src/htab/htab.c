@@ -28,7 +28,7 @@ typedef struct _Htab {
 } Htab;
 
 
-Htab *htab_init(void *(*alloc)(size_t), void (*dealloc)(void *)) {
+Htab *htab_init(AllocFunc alloc, FreeFunc dealloc) {
     // Allocators have to be specified
     if (alloc == NULL || dealloc == NULL) {
         return NULL;
@@ -258,10 +258,10 @@ void htab_free(Htab *htab) {
 }
 
 
-HtabAlloc htab_alloc(Htab *htab) {
+AllocFunc htab_alloc(Htab *htab) {
     return htab->alloc;
 }
 
-HtabDeAlloc htab_dealloc(Htab *htab) {
+FreeFunc htab_dealloc(Htab *htab) {
     return htab->dealloc;
 }
