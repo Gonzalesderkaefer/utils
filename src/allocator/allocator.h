@@ -57,6 +57,9 @@ static void *__malloc_realloc(void *context, void *ptr, size_t new_size) { retur
 #ifndef JAZZY_ALLOC_TYPES
 #define JAZZY_ALLOC_TYPES
 
+// Libraries
+#include<stddef.h>
+
 
 /// This type represents functions that are used to allocate memory
 /// the function 'malloc' is of this type
