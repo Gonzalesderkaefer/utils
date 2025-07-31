@@ -1,5 +1,5 @@
-#ifndef JAZZY_ALLOCATOR
-#define JAZZY_ALLOCATOR
+#ifndef JAZZY_ALLOC_H
+#define JAZZY_ALLOC_H
 
 // Libraries
 #include <stddef.h>
@@ -63,7 +63,7 @@ typedef void *(*ReAllocFunc)(void *, size_t);
 typedef void (*FreeFunc)(void *);
 
 
-#endif // JAZZY_ALLOCATOR
+#endif // JAZZY_ALLOC_H
 
 #ifndef REFLIST_H
 #define REFLIST_H
