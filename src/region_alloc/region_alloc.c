@@ -11,16 +11,14 @@
 
 
 /******************* Block implementation *******************/
-typedef struct _Block Block;
 
-
-typedef struct _Block{ 
+struct _Block{ 
     void *memory;
     void *pos;
     void *endpos;
     Block *next;
     Block *prev;
-} Block;
+};
 
 
 static Block *blk_init() {

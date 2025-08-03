@@ -10,12 +10,12 @@
 /// This type is used as a handle to a 
 /// dynamic list and a pointer to this is used
 /// to pass into functions and perform operations on.
-typedef struct _RefList {
+struct _RefList {
     size_t cap;
     size_t len;
     void **storage;
     Allocator allocator;
-} RefList;
+};
 
 
 /// Initialize a dynamic list

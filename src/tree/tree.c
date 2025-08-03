@@ -38,13 +38,13 @@ typedef int (*Comparator)(const void *, const void *, size_t);
 typedef struct _TreeNode TreeNode;
 
 
-typedef struct _TreeNode {
+struct _TreeNode {
     uint64_t height;
     TreeNode *parent;
     TreeNode *left;
     TreeNode *right;
     const void *value;
-} TreeNode;
+};
 
 typedef enum {
     Left,

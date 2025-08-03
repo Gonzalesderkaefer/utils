@@ -21,12 +21,12 @@ typedef struct _Pair {
 
 
 
-typedef struct _Htab {
+struct _Htab {
     size_t capacity;
     AllocFunc alloc;
     FreeFunc dealloc;
     Pair *storage;
-} Htab;
+};
 
 
 Htab *htab_init(const AllocFunc alloc, const FreeFunc dealloc) {

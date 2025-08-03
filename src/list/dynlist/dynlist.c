@@ -11,13 +11,13 @@
 /// This type is used as a handle to a 
 /// dynamic list and a pointer to this is used
 /// to pass into functions and perform operations on.
-typedef struct _DynList {
+struct _DynList {
     size_t cap;
     size_t len;
     size_t elem_size;
     char *storage;
     Allocator allocator;
-} DynList;
+};
 
 
 /// Initialize a dynamic list

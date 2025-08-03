@@ -13,14 +13,14 @@
 
 
 
-typedef struct _Path {
+struct _Path {
     const char *buf; // Pointer to char buffer, with NUL terminator
     const char *basename; // the last component of the path
     const char *parent; // Everything except the last component of the path
     size_t buflen; // current buffer length includes NUL termintator
     void *(*alloc) (size_t bytes); // allocator function is usually malloc()
     void (*dealloc) (void *); // deallocator function is usually free()
-} Path;
+};
 
 
 Path *path_init_alloc(const char *initval, void *(*alloc) (size_t bytes), void (*dealloc) (void *)) {
