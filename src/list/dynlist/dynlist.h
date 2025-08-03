@@ -43,7 +43,7 @@ typedef struct _Allocator {
 /// This allocator just encapsulates
 /// malloc, free and realloc
 static void *__malloc_alloc(void *context, size_t size) { return malloc(size); }
-static void __malloc_free(void *context, void *ptr) { return free(ptr); }
+static void __malloc_free(void *context, void *ptr) { free(ptr); }
 static void *__malloc_realloc(void *context, void *ptr, size_t new_size) { return realloc(ptr, new_size); }
 
 /// Macro for the default allocator

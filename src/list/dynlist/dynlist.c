@@ -159,7 +159,7 @@ void dynlist_push(DynList *list, const void *value) {
         memcpy(new_storage, list->storage, list->elem_size * list->cap);
 
         // Get pointer to insert at.
-        void *ptr_to_insert = new_storage + list->elem_size * list->len;
+        void *ptr_to_insert = (char *)new_storage + list->elem_size * list->len;
 
         // Copy/Append value to the buffer
         memcpy(ptr_to_insert, value, list->elem_size);
