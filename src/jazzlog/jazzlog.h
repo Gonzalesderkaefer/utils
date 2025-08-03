@@ -1,4 +1,5 @@
-
+// Libraries
+#include <stdio.h>
 
 // Allocation logging
 #ifdef RESOURCE_LOG
