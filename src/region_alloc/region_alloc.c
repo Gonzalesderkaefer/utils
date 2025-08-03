@@ -42,7 +42,7 @@ static Block *blk_init() {
     new_block->next = NULL;
     new_block->prev = NULL;
     new_block->pos = new_memory;
-    new_block->endpos = new_memory + blocksize;
+    new_block->endpos = (char *)new_memory + blocksize;
 
 
     return new_block;
@@ -67,7 +67,7 @@ static Block *blk_init_sized(size_t size) {
     new_block->next = NULL;
     new_block->prev = NULL;
     new_block->pos = new_memory;
-    new_block->endpos = new_memory + size;
+    new_block->endpos = (char *)new_memory + size;
 
 
     return new_block;
@@ -91,7 +91,7 @@ static void *blk_alloc(Block *blk, const size_t size, bool zero) {
     assert(blk->endpos > blk->pos);
 
     // Check if there's enough space
-    if (blk->endpos - blk->pos < size) return NULL;
+    if ((char *)blk->endpos - (char *)blk->pos < size) return NULL;
 
     // Store current position
     void *to_return = blk->pos;
@@ -100,7 +100,7 @@ static void *blk_alloc(Block *blk, const size_t size, bool zero) {
     if (zero) memset(to_return, 0, size);
 
     // advance poition by size
-    blk->pos += size;
+    blk->pos = (char *)blk->pos + size;
 
     return to_return;
 }
