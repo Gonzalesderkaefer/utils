@@ -10,25 +10,6 @@
 #include <string.h>
 
 
-/********************************* Public *************************************/
-
-// TODO: DOCS
-// typedef void *(*Alloc)(size_t);
-
-
-// TODO: DOCS
-//typedef void (*DeAlloc)(void *);
-
-// TODO: DOCS
-typedef int (*Comparator)(const void *, const void *, size_t);
-
-// TODO: DOCS
-//typedef struct _Tree Tree;
-
-
-
-
-
 // Macros
 #define min(x,y) (((x) < (y)) ? (x) : (y))
 #define max(x,y) (((x) > (y)) ? (x) : (y))
@@ -186,23 +167,23 @@ static void node_free(FreeFunc dealloc, TreeNode *node) {
 
 /********************************* Tree ***************************************/
 
-typedef struct _Tree {
+struct _Tree {
     const size_t elem_size;
     TreeNode *root;
     AllocFunc alloc;
     FreeFunc dealloc;
     Comparator comp;
-} Tree;
+};
 
 
 Tree *tree_init(const size_t elem_size, AllocFunc alloc, FreeFunc dealloc, Comparator comp) {
     // Allcoate local tree
     Tree local_tree = {
         .elem_size = elem_size,
-        .alloc = alloc,
-        .dealloc = dealloc,
+        .alloc = alloc == NULL ? malloc : alloc,
+        .dealloc = dealloc == NULL ? free : dealloc,
         .root = NULL,
-        .comp = comp,
+        .comp = comp == NULL ? memcmp : comp,
     };
 
 
