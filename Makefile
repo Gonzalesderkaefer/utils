@@ -5,7 +5,7 @@ PRJNAME := utils
 CC := cc
 
 # Compile flags
-CFLAGS := -Werror -Wall -std=c23 -g -Wno-unused-function
+CFLAGS := -Werror -Wall -pedantic -std=c23 -g -Wno-unused-function
 
 # Source directory
 SRCDIR := src
