@@ -2,10 +2,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/cdefs.h>
 #include "../src/list/reflist/reflist.h"
 #include "../src/list/dynlist/dynlist.h"
 #include "../src/htab/htab.h"
 #include "../src/list/vector.h"
+#include "../src/tree/tree.h"
 
 #define to_ptr(type, value) (type [1]){value}
 
@@ -138,7 +140,7 @@ void macro_htab(void) {
 }
 
 
-int main(void) {
+void macro_list(void) {
     char *word = NULL;
     vec_push(word, 'H');
     vec_push(word, 'e');
@@ -156,4 +158,15 @@ int main(void) {
 
     puts(word);
     vec_free(word);
+}
+
+
+
+
+void test_tree(void) {
+}
+
+
+
+int main(void) {
 }
