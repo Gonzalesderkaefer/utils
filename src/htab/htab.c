@@ -9,6 +9,9 @@
 #include <stdint.h>
 #include <sys/types.h>
 
+#define RESOURCE_LOG
+#include "../jazzlog/jazzlog.h"
+
 
 typedef struct _Pair {
     size_t keylen;
@@ -19,7 +22,6 @@ typedef struct _Pair {
 
 
 typedef struct _Htab {
-    size_t length;
     size_t capacity;
     AllocFunc alloc;
     FreeFunc dealloc;
@@ -47,7 +49,6 @@ Htab *htab_init(const AllocFunc alloc, const FreeFunc dealloc) {
     new_table->alloc = alloc == NULL ? malloc : alloc;
     new_table->dealloc = dealloc == NULL ? free : dealloc;
     new_table->capacity = INIT_SIZE;
-    new_table->length = 0;
     new_table->storage = new_storage;
 
 
@@ -220,7 +221,7 @@ static bool key_match_pair(const Pair pair, const char *key, const size_t keylen
 
 }
 
-void *htab_lookup(Htab *htab, char *key, size_t keylen) {
+void *htab_lookup(Htab *htab, void *key, size_t keylen) {
     // Sanity check
     if (htab == NULL || key == NULL || keylen == 0) {
         return NULL;
@@ -243,7 +244,7 @@ void *htab_lookup(Htab *htab, char *key, size_t keylen) {
 }
 
 void htab_free(Htab *htab) {
-    for (int i = 0; i < htab->length; ++i) {
+    for (int i = 0; i < htab->capacity; ++i) {
         // Check if Slot is occupied
         if (htab->storage[i].value != NULL) {
             // Free keys and values
