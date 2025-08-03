@@ -90,6 +90,47 @@ static __vector_t *__vec_get_struct(void *storage_ptr)  {
 
 
 
+static void *__vec_prealloc(void *storage_ptr, size_t new_size) {
+    // Sanity check
+    if (storage_ptr == NULL) {
+        return NULL;
+    }
+
+    __vector_t *vect = (__vector_t *)((char *)storage_ptr - sizeof(__vector_t));
+
+    // Check if needs to be resized
+    if (new_size <= vect->cap) {
+        return storage_ptr;
+    }
+
+    // Allcoate new storage
+    __vector_t *new_vect = malloc(sizeof(__vector_t) + vect->elem_size * new_size);
+    if (new_vect == NULL) {
+        return NULL;
+    }
+
+    // Copy old values
+    memcpy(new_vect, vect, sizeof(__vector_t) + vect->elem_size * vect->cap);
+
+    // Get new storage ptr
+    void *new_storage_ptr = (char *)new_vect + sizeof(__vector_t);
+
+    // Assign values
+    new_vect->elem_size = vect->elem_size;
+    new_vect->cap = new_size;
+    new_vect->len = vect->len;
+    new_vect->storage = new_storage_ptr;
+
+
+    // Free old vector
+    free(vect);
+
+    return new_vect->storage;
+
+    
+}
+
+
 #define vec_push(ptr, elem) \
     if (ptr == NULL) { \
         ptr = __vec_init(sizeof(*ptr)); \
