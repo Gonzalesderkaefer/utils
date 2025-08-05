@@ -12,17 +12,17 @@ typedef struct _Allocator {
     /// Handle to context
     void *context;
 
-    /// Params:
+    /// Parameters:
     /// - void * -> Pointer to context
     /// - size_t -> amount of bytes neede
     void *(*alloc)(void *, size_t);
 
-    /// Params:
+    /// Parameters:
     /// - void * -> Pointer to context
     /// - void * -> Pointer to memory
     void (*dealloc)(void *, void *);
 
-    /// Params:
+    /// Parameters:
     /// - void * -> Pointer to context
     /// - void * -> Pointer to memory
     /// - size_t -> new size
@@ -64,14 +64,14 @@ static void *__malloc_realloc(void *context, void *ptr, size_t new_size) { retur
 /// This type represents functions that are used to allocate memory
 /// the function 'malloc' is of this type
 ///
-/// Params:
+/// Parameters:
 /// - size_t: amount of bytes needed
 typedef void *(*AllocFunc)(size_t);
 
 /// This type represents functions that are used to reallocate memory
 /// the function 'realloc' is of this type
 ///
-/// Params:
+/// Parameters:
 /// - void *: old pointer
 /// - size_t: amount of bytes needed
 typedef void *(*ReAllocFunc)(void *, size_t);
@@ -79,7 +79,7 @@ typedef void *(*ReAllocFunc)(void *, size_t);
 /// This type represents functions that are used to allocate initialized memory
 /// the function 'calloc' is of this type
 ///
-/// Params:
+/// Parameters:
 /// - void *: old pointer
 /// - size_t: amount of bytes needed
 typedef void (*CalloFunc)(size_t);
@@ -87,7 +87,7 @@ typedef void (*CalloFunc)(size_t);
 /// This type represents functions that are used to free memory
 /// the function 'free' is of this type
 ///
-/// Params:
+/// Parameters:
 /// - void *: pointer to memory  to free
 typedef void (*FreeFunc)(void *);
 
