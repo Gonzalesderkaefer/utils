@@ -75,9 +75,21 @@ typedef void (*FreeFunc)(void *);
 
 
 
+
+
 /// This type represents functions that are used to compare to
 /// blocks of memory the function 'memcmp' is of this type
 typedef int (*Comparator)(const void *, const void *, size_t);
+
+
+/// Special handle to a tree
+///
+/// This type represents a special handle to a tree. This pointer actually
+/// points to a temporary buffer that is used to store values that are
+/// passed to the tree.
+typedef void *SpecialTree;
+
+
 
 /// A handle to a tree
 ///
@@ -100,6 +112,35 @@ typedef struct _Tree Tree;
 ///   A pointer to a tree or NULL if the memory allocation fails
 Tree *tree_init(const size_t elem_size, AllocFunc alloc, FreeFunc dealloc, Comparator comp);
 
+
+/// Initialize a Tree with a value buffer
+///
+/// This function works like `tree_init` but the pointer that is returned by
+/// `tree_init` lies sizeof(Tree *) bytes behind the pointer retuned by this
+/// function. This function is actually not meant to be used normally it is a
+/// helper for a future macro wrapper for this data structure
+///
+/// Parameters:
+///   - elem_size: size of the elements that are stored in the tree
+///   - alloc: memory allocator
+///   - dealloc: memory free function
+///   - comp: function used to compare two values
+///
+/// Returns:
+///   A pointer to a value buffer or NULL if the memory allocation fails
+SpecialTree tree_init_special(const size_t elem_size, AllocFunc alloc, FreeFunc dealloc, Comparator comp);
+
+/// Get a tree handle from a special handle
+///
+/// This function returns a normal tree handle from a SpecialHandle
+///
+/// Parameters:
+///   - handle: special tree handle that was returned by `tree_init_w_buf` 
+///
+/// Returns:
+///   - A normal tree handle
+Tree *tree_from_handle(SpecialTree handle);
+
 /// Insert a value into a tree
 ///
 /// This function inserts a value into the tree. The value is copied and should
@@ -109,7 +150,8 @@ Tree *tree_init(const size_t elem_size, AllocFunc alloc, FreeFunc dealloc, Compa
 /// Parameters:
 ///   - tree: handle to a tree that was returned by `tree_init`
 ///   - value: pointer to the value that needs to be inserted
-void tree_insert(Tree *tree, const void *value);
+///   - value_size: size of the value that will inserted into the tree
+void tree_insert(Tree *tree, const void *value, const size_t value_size);
 
 /// Look up a value in a tree
 ///
@@ -142,6 +184,14 @@ void tree_delete(Tree *tree, const void *value);
 void tree_free(Tree *tree);
 
 
+/// Free the entire tree
+///
+/// This function frees the tree according to [dealloc] which was specified
+/// in `tree_init_special`. The tree should not be used after it has been freed.
+///
+/// Parameters:
+///   - handle: special handle to a tree that was returned by `tree_init_special`
+void tree_free_special(SpecialTree handle);
 
 
 

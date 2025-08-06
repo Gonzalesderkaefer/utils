@@ -24,7 +24,7 @@ struct _TreeNode {
     TreeNode *parent;
     TreeNode *left;
     TreeNode *right;
-    const void *value;
+    void *value;
 };
 
 typedef enum {
@@ -39,16 +39,25 @@ typedef enum {
     RightRot,
 } RotationDir;
 
-static TreeNode *node_init(const void *value, const TreeNode *parent, AllocFunc alloc) {
+static TreeNode *node_init(const void *value, const TreeNode *parent, size_t elem_size, AllocFunc alloc) {
     // Allocate Node
-    TreeNode *new_node = malloc(sizeof(TreeNode));
+    TreeNode *new_node = alloc(sizeof(TreeNode) + elem_size);
     if (new_node == NULL) {
         return NULL;
     }
 
+    // Get storage pointer
+    void *value_ptr = (char *)new_node + elem_size;
+
+    // Copy value into value_buffer
+    if (value != NULL) {
+        memcpy(value_ptr, value, elem_size);
+    }
+
+
     // Assign values
     new_node->parent = (TreeNode *)parent;
-    new_node->value = value;
+    new_node->value = value_ptr;
     new_node->height = 1;
     new_node->left = NULL;
     new_node->right = NULL; 
@@ -197,6 +206,45 @@ Tree *tree_init(const size_t elem_size, AllocFunc alloc, FreeFunc dealloc, Compa
     return new_tree;
 }
 
+Tree *tree_from_handle(SpecialTree handle) {
+    void *tree_struct = (char *)handle - sizeof(Tree *);
+    return *(Tree **)tree_struct;
+}
+
+
+SpecialTree tree_init_special(const size_t elem_size, AllocFunc alloc, FreeFunc dealloc, Comparator comp) {
+    void *handle_and_buffer = alloc(sizeof(Tree *) + elem_size);
+    if (handle_and_buffer == NULL) {
+        return NULL;
+    }
+
+    Tree *tree_ptr = tree_init(elem_size, alloc, dealloc, comp);
+    if (tree_ptr == NULL) {
+        dealloc(handle_and_buffer);
+        return NULL;
+    }
+
+    // Copy tree pointer to handle_and_buffer
+    memcpy(handle_and_buffer, &tree_ptr, sizeof(Tree *));
+
+    // Get buffer pointer
+    void *buf_ptr = (char *)handle_and_buffer + sizeof(Tree *);
+
+
+    return buf_ptr;
+}
+
+
+void tree_free_special(SpecialTree handle) {
+    Tree *tree = tree_from_handle(handle);
+    void *handle_and_buffer = (char *)handle - sizeof(Tree *);
+    FreeFunc dealloc = tree->dealloc;
+    tree_free(tree);
+    dealloc(handle_and_buffer);
+}
+
+
+
 
 Tree *tree_init_def(const size_t elem_size, const Comparator comp) {
     // Allcoate local tree
@@ -221,19 +269,25 @@ Tree *tree_init_def(const size_t elem_size, const Comparator comp) {
     return new_tree;
 }
 
-void tree_insert(Tree *tree, const void *value) {
+void tree_insert(Tree *tree, const void *value, const size_t val_size) {
     // Sanity check
     if (value == NULL || tree->comp == NULL || 
-            tree->alloc == NULL || tree->dealloc == NULL) {
+            tree->alloc == NULL || tree->dealloc == NULL || val_size != tree->elem_size) {
         return;
     }
 
     // This is the first insertion
     if (tree->root == NULL) {
-        tree->root = node_init(value, NULL, tree->alloc);
+        tree->root = node_init(value, NULL, tree->elem_size, tree->alloc);
         if (tree->root == NULL) {
             return;
         }
+        return;
+    }
+
+    // Create new node that will be added to the tree
+    TreeNode *new_node = node_init(value, NULL, tree->elem_size, tree->alloc);
+    if (new_node == NULL) {
         return;
     }
 
@@ -243,27 +297,23 @@ void tree_insert(Tree *tree, const void *value) {
         int compval = tree->comp(value, parent->value, tree->elem_size); 
 
         if (compval == 0) { // NO duplicates!!
+            // We have to free this node first
+            node_free(tree->dealloc, new_node);
             return;
         } else if (compval < 0) { // Go left
             if (parent->left == NULL) {
-                TreeNode *new_node = node_init(value, parent, tree->alloc);
-                if (new_node == NULL) { // Error checking
-                    return;
-                }
                 // Set for parent node
                 parent->left = new_node;
+                new_node->parent = parent;
                 break;
             }
             // Keep going
             parent = parent->left;
         } else if (compval > 0) { // Go right
             if (parent->right == NULL) {
-                TreeNode *new_node = node_init(value, parent, tree->alloc);
-                if (new_node == NULL) { // Error checking
-                    return;
-                }
                 // Set for parent node
                 parent->right = new_node;
+                new_node->parent = parent;
                 break;
             }
             // Keep going
@@ -302,6 +352,105 @@ void tree_insert(Tree *tree, const void *value) {
         break;
     }
 }
+
+
+
+
+
+
+
+void *tree_insert_with_buf(Tree *tree, const void *value, const size_t val_size) {
+    // Sanity check
+    if (value == NULL || tree->comp == NULL || 
+            tree->alloc == NULL || tree->dealloc == NULL || val_size != tree->elem_size) {
+        return NULL;
+    }
+
+    // This is the first insertion
+    if (tree->root == NULL) {
+        tree->root = node_init(NULL, NULL, tree->elem_size, tree->alloc);
+        if (tree->root == NULL) {
+            return NULL;
+        }
+        return (void *)tree->root->value;
+    }
+
+    // Create new node that will be added to the tree
+    TreeNode *new_node = node_init(NULL, NULL, tree->elem_size, tree->alloc);
+    if (new_node == NULL) {
+        return NULL;
+    }
+
+    // Find the parent of the new node
+    TreeNode *parent = tree->root;
+    while (parent != NULL) {
+        int compval = tree->comp(value, parent->value, tree->elem_size); 
+
+        if (compval == 0) { // NO duplicates!!
+            // We have to free this node first
+            node_free(tree->dealloc, new_node);
+            return NULL;
+        } else if (compval < 0) { // Go left
+            if (parent->left == NULL) {
+                // Set for parent node
+                parent->left = new_node;
+                new_node->parent = parent;
+                break;
+            }
+            // Keep going
+            parent = parent->left;
+        } else if (compval > 0) { // Go right
+            if (parent->right == NULL) {
+                // Set for parent node
+                parent->right = new_node;
+                new_node->parent = parent;
+                break;
+            }
+            // Keep going
+            parent = parent->right;
+        }
+    }
+    // Parent cannot be null
+    assert(parent != NULL);
+
+    // We have to rotate the grand parent node
+    TreeNode *g_parent = parent->parent;
+
+    // update heights
+    while (parent != NULL) {
+        node_update_height(parent);
+        parent = parent->parent;
+    }
+
+    if (g_parent == NULL) {
+        return NULL;
+    }
+    const Direction dir = child_dir(g_parent);
+    assert(dir != Fail && "Getting direction failed\n");
+
+    switch (dir) {
+    case Left:
+        g_parent->parent->left = node_balance(g_parent);
+        break;
+    case Right:
+        g_parent->parent->right = node_balance(g_parent);
+        break;
+    case Root:
+        tree->root = node_balance(g_parent);
+        break;
+    case Fail:
+        break;
+    }
+
+    // Return buffer to write to
+    return (void *)new_node->value;
+}
+
+
+
+
+
+
 
 
 static const TreeNode *tree_lookup_node(const Tree *tree, const void *value) {
