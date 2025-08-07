@@ -25,11 +25,6 @@
 #include "../src/templates/vector_template/vector.h"
 
 
-// Vector of double
-#include "../src/templates/vector_template/vector_double.h"
-
-
-
 // in case the type is a pointer 
 #define PRETTY_TYPE intptr
 #define TYPE int *
@@ -182,39 +177,25 @@ void macro_list(void) {
 }
 
 
-#define tree_put(tree, value) \
-    if (tree == NULL) { \
-        tree = tree_init_special(sizeof(*tree), malloc, free, memcmp); \
-    } \
-    *tree = value; \
-    tree_insert(tree_from_handle(tree), tree, (sizeof(*tree)))
-
-#define tree_get(tree, value) \
-    ((tree_lookup(tree_from_handle(tree), tree)) != (NULL))
 
 
 void test_tree(void) {
-    Tree *new_tree = tree_init(sizeof(int), malloc, free, memcmp);
-    tree_free(new_tree);
 }
 
 
 void test_tree_macro(void) {
     int *int_tree = NULL;
     tree_put(int_tree, 44);
-    tree_put(int_tree, 4);
-    tree_put(int_tree, 1);
-    tree_lookup(tree_from_handle(int_tree), (int[1]){44});
-    tree_free_special(int_tree);
+    const int *hell;
+    tree_get(hell, int_tree, 44);
+
+    printf("%d\n", *hell);
+    tree_del(int_tree);
 }
 
 void test_vector_macro(void) {
-    VectorDouble *double_v = vector_double_init(malloc, free);
-    VectorInt *int_v = vector_int_init(malloc, free);
-    vector_double_free(double_v);
-    vector_int_free(int_v);
 }
 
 int main(void) {
-    test_vector_macro();
+    test_tree_macro();
 }
