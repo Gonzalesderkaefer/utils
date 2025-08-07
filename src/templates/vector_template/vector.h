@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+/****************************** Alloc *****************************************/
 
 #ifndef JAZZY_ALLOC_TYPES
 #define JAZZY_ALLOC_TYPES
@@ -44,7 +45,7 @@ typedef void (*CalloFunc)(size_t);
 typedef void (*FreeFunc)(void *);
 #endif // JAZZY_ALLOC_TYPES
 
-
+/*************************** Vec Implementaion *****************************/
 
 
 /// You have to add the ifdef gurads yourself because
@@ -52,25 +53,25 @@ typedef void (*FreeFunc)(void *);
 ///
 /// Something like VECTOR_TYPE_H is recommendend where TYPE is the 
 /// snake_type below but captilaized
-#ifndef VECTOR_TYPE_H
-#define VECTOR_TYPE_H
-/*             ^^^^  Change this!! */
+#ifndef VEC_TYPE_H
+#define VEC_TYPE_H
+/*          ^^^^  Change this!! */
 
 // Edit these
 #define type int // The actual typename
 #define snake_type int // Used for functions
-#define pascal_type Int // Used for the vector typename
+#define pascal_type Int // Used for the vec typename
 
 
 
 
 
-#define _Vector(t) Vector##t
-#define __vector(t) vector_##t
-#define VectorOf(t) _Vector(t)
-#define vectorof(t) __vector(t)
-#define Vector VectorOf(pascal_type)
-#define _vector vectorof(snake_type)
+#define _Vec(t) Vec##t
+#define __vec(t) vec_##t
+#define VecOf(t) _Vec(t)
+#define vecof(t) __vec(t)
+#define Vec VecOf(pascal_type)
+#define _vec vecof(snake_type)
 
 
 #define concat2(a, b) a##b
@@ -78,17 +79,17 @@ typedef void (*FreeFunc)(void *);
 
 
 
-typedef struct Vector  {
+typedef struct Vec  {
     size_t cap;
     size_t len;
     AllocFunc alloc;
     FreeFunc dealloc;
     type *storage;
-} Vector;
+} Vec;
 
 
 
-static Vector *comp2(_vector, _init)(AllocFunc alloc, FreeFunc dealloc) {
+static Vec *comp2(_vec, _init)(AllocFunc alloc, FreeFunc dealloc) {
     // Both have to be defined or undefined
     if ((alloc == NULL) ^ (dealloc == NULL)) {
         return NULL;
@@ -103,7 +104,7 @@ static Vector *comp2(_vector, _init)(AllocFunc alloc, FreeFunc dealloc) {
     memset(new_storage, 0, sizeof(type) * 10);
 
     // Allocate struct
-    Vector *new_vect = alloc(sizeof(Vector));
+    Vec *new_vect = alloc(sizeof(Vec));
     if (new_vect == NULL) {
         dealloc(new_storage);
         return NULL;
@@ -125,7 +126,7 @@ static Vector *comp2(_vector, _init)(AllocFunc alloc, FreeFunc dealloc) {
 }
 
 
-static void comp2(_vector, _push)(Vector *vec, const type value) {
+static void comp2(_vec, _push)(Vec *vec, const type value) {
     if (vec->len >= vec->cap) {
         // Allocate new storage
         type *new_storage = vec->alloc(sizeof(type) * vec->cap * 2);
@@ -144,7 +145,7 @@ static void comp2(_vector, _push)(Vector *vec, const type value) {
         // Reassign new storage
         vec->storage = new_storage;
 
-        // Update vector capacity
+        // Update vec capacity
         vec->cap *= 2;
     }
 
@@ -153,7 +154,7 @@ static void comp2(_vector, _push)(Vector *vec, const type value) {
 }
 
 
-static void comp2(_vector, _delete)(Vector *vec, size_t index) {
+static void comp2(_vec, _delete)(Vec *vec, size_t index) {
     // Sanity check
     if (vec == NULL || vec->len <= index) {
         return;
@@ -166,7 +167,7 @@ static void comp2(_vector, _delete)(Vector *vec, size_t index) {
 }
 
 
-static type *comp2(_vector, _storage)(const Vector *vec) {
+static type *comp2(_vec, _storage)(const Vec *vec) {
     if (vec == NULL) {
         return NULL;
     } 
@@ -175,7 +176,7 @@ static type *comp2(_vector, _storage)(const Vector *vec) {
 
 
 
-static void comp2(_vector, _free)(Vector *vec) {
+static void comp2(_vec, _free)(Vec *vec) {
     // Store a pointer to the dealloc function
     FreeFunc dealloc = vec->dealloc;
 
@@ -190,14 +191,14 @@ static void comp2(_vector, _free)(Vector *vec) {
 #undef type
 #undef snake_type
 #undef pascal_type
-#undef _Vector
-#undef __vector
-#undef VectorOf
-#undef vectorof
-#undef Vector
-#undef _vector
+#undef _Vec
+#undef __vec
+#undef VecOf
+#undef vecof
+#undef Vec
+#undef _vec
 
 
 
 
-#endif // VECTOR_TYPE_H
+#endif // VEC_TYPE_H
