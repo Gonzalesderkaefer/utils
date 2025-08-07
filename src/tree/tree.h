@@ -4,7 +4,6 @@
 // Libraries
 #include <stddef.h>
 #include <stdlib.h>
-
 /// This struct exists to encapsulate an Allocator.
 /// It is used to initialize Data structures etc.
 /// Usually passed by value into an initializer function.
@@ -192,6 +191,53 @@ void tree_free(Tree *tree);
 /// Parameters:
 ///   - handle: special handle to a tree that was returned by `tree_init_special`
 void tree_free_special(SpecialTree handle);
+
+
+
+/// Put a value into a Tree
+///
+/// This macro inserts a value into a tree. The handle
+/// to the tree has to be pointer to the type of [value] and should
+/// be initially be set to NULL. This macro mutates the value the pointer
+/// that is provided.
+///
+/// Parameters:
+///   - tree: a pointer to a type of [value]
+///   - value: value that needs to be inserted
+#define tree_put(tree, value) \
+    if (tree == NULL) { \
+        tree = tree_init_special(sizeof(*tree), malloc, free, memcmp); \
+    } \
+    if (tree != NULL) { \
+        *tree = value; \
+        tree_insert(tree_from_handle(tree), tree, (sizeof(*tree))); \
+    }
+
+/// Get a value from the tree
+///
+/// This macro gets [value] from the [tree] provided and stores
+/// it in the provided [variable]. The value in the variable should not
+/// be mutated. If [tree] is NULL [varaible] will also be NULL
+///
+/// Parameters:
+///   - variable: the variable which stores a pointer to the value in the tree.
+///   - tree: a pointer to a type of [value]
+///   - value: the value to lookup
+#define tree_get(variable, tree, value) \
+    *tree = value; \
+    variable = (tree_lookup(tree_from_handle(tree), tree)); \
+
+
+/// Delete a tree
+///
+/// This macro frees/deletes a tree that is accessed through a special
+/// handle.
+///
+/// Parameters:
+///   - tree: a pointer to a type of [value]
+#define tree_del(tree) \
+    tree_free_special(tree);
+
 
 
 

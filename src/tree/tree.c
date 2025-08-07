@@ -39,7 +39,8 @@ typedef enum {
     RightRot,
 } RotationDir;
 
-static TreeNode *node_init(const void *value, const TreeNode *parent, size_t elem_size, AllocFunc alloc) {
+//static TreeNode *node_init(const void *value, const TreeNode *parent, size_t elem_size, AllocFunc alloc) {
+TreeNode *node_init(const void *value, const TreeNode *parent, size_t elem_size, AllocFunc alloc) {
     // Allocate Node
     TreeNode *new_node = alloc(sizeof(TreeNode) + elem_size);
     if (new_node == NULL) {
@@ -47,12 +48,9 @@ static TreeNode *node_init(const void *value, const TreeNode *parent, size_t ele
     }
 
     // Get storage pointer
-    void *value_ptr = (char *)new_node + elem_size;
+    void *value_ptr = (char *)new_node + sizeof(TreeNode);
 
-    // Copy value into value_buffer
-    if (value != NULL) {
-        memcpy(value_ptr, value, elem_size);
-    }
+    memcpy(value_ptr, value, elem_size);
 
 
     // Assign values
@@ -207,6 +205,10 @@ Tree *tree_init(const size_t elem_size, AllocFunc alloc, FreeFunc dealloc, Compa
 }
 
 Tree *tree_from_handle(SpecialTree handle) {
+    // Sanity check
+    if (handle == NULL) {
+        return NULL;
+    }
     void *tree_struct = (char *)handle - sizeof(Tree *);
     return *(Tree **)tree_struct;
 }
@@ -236,6 +238,9 @@ SpecialTree tree_init_special(const size_t elem_size, AllocFunc alloc, FreeFunc 
 
 
 void tree_free_special(SpecialTree handle) {
+    if (handle == NULL) {
+        return;
+    }
     Tree *tree = tree_from_handle(handle);
     void *handle_and_buffer = (char *)handle - sizeof(Tree *);
     FreeFunc dealloc = tree->dealloc;
@@ -454,9 +459,10 @@ void *tree_insert_with_buf(Tree *tree, const void *value, const size_t val_size)
 
 
 static const TreeNode *tree_lookup_node(const Tree *tree, const void *value) {
-    const TreeNode *cur_node = tree->root;
+    TreeNode *cur_node = tree->root;
+    int compare_value;
     while (cur_node != NULL) {
-        int compare_value = tree->comp(value, cur_node->value, tree->elem_size);
+        compare_value = tree->comp(value, cur_node->value, tree->elem_size);
         if (compare_value == 0) {
             return cur_node;
         } else if (compare_value < 0) { // Go left
@@ -476,6 +482,10 @@ const void *tree_lookup(const Tree *tree, const void *value) {
 
     // Find node
     const TreeNode *found_node = tree_lookup_node(tree, value);
+
+    if (found_node == NULL) {
+        return NULL;
+    }
 
     // return value
     return found_node->value;
