@@ -59,4 +59,4 @@ target/
 *!/.gitignore
 
 # Ignore the test (scratch) file
-test/test.c
+testing/*
