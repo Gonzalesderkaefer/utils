@@ -63,7 +63,7 @@ $(UNITY_TARDIR)/%.c: $(SRCDIR)/%.c
 
 
 test: export
-	@$(CC) $(CFLAGS) -c test/test.c -o $(BUILDDIR)/test.o
+	@$(CC) $(CFLAGS) -c testing/test.c -o $(BUILDDIR)/test.o
 	@$(CC) $(CFLAGS) $(OBJECTS) $(BUILDDIR)/test.o $(LFLAGS) -o run.out
 
 
