@@ -57,3 +57,6 @@ target/
 # All hidden files except gitignore
 .*
 *!/.gitignore
+
+# Ignore the test (scratch) file
+test/test.c
