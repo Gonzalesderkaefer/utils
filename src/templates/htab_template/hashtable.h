@@ -205,6 +205,15 @@ void comp2(_htab, _put)(Htab *table, const k key, const v value);
 v *comp2(_htab, _get)(Htab *table, const k key);
 
 
+/// Delete an entry from the table
+///
+/// This function deletes a value that is associated with the 
+/// [key] if it exists
+///
+/// Parameters:
+///   - table: handle to a hashtable that was returned by `htab_k_v_init`
+///   - key: key to look and delete its value
+void comp2(_htab, _del)(Htab *table, const k key);
 
 /// Free up memory used by the hash table (htab_key_value_free)
 ///
@@ -215,7 +224,6 @@ v *comp2(_htab, _get)(Htab *table, const k key);
 /// Parameters:
 ///   - htab: handle to a hashtable that was returned by `htab_k_v_free`
 static void comp2(_htab, _free)(Htab *table);
-
 
 
 
@@ -394,17 +402,42 @@ v *comp2(_htab, _get)(Htab *table, const k key) {
     uint64_t hash = table->hashfunc(key); 
     uint64_t index = hash % table->capacity;
 
-    if (table->cmp_func(table->storage[index].key, key)) {
+    if (table->cmp_func(table->storage[index].key, key) && table->storage[index].occupied) {
         return &table->storage[index].value;
     } else {
         uint64_t other_index = (index + 1) % table->capacity;
-        while(!table->cmp_func(table->storage[other_index].key, key)) {
+        while(!table->cmp_func(table->storage[other_index].key, key) || !table->storage[other_index].occupied) {
             if (other_index == index) { // Could not find value
                 return NULL;
             }
             other_index = (other_index + 1) % table->capacity;
         }
         return &table->storage[other_index].value;
+    }
+}
+
+
+void comp2(_htab, _del)(Htab *table, const k key) {
+    // Sanity check
+    if (table == NULL) {
+        return;
+    }
+
+    // Calculate index
+    uint64_t hash = table->hashfunc(key); 
+    uint64_t index = hash % table->capacity;
+
+    if (table->cmp_func(table->storage[index].key, key)) {
+        memset(&table->storage[index], 0, sizeof(Pair));
+    } else {
+        uint64_t other_index = (index + 1) % table->capacity;
+        while(!table->cmp_func(table->storage[other_index].key, key)) {
+            if (other_index == index) { // Could not find value
+                return;
+            }
+            other_index = (other_index + 1) % table->capacity;
+        }
+        memset(&table->storage[other_index], 0, sizeof(Pair));
     }
 }
 
