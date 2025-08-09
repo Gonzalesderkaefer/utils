@@ -107,10 +107,6 @@ void test_dynlist(void) {
     printf("%d\n", *(int *)dynlist_at(list, 0));
     printf("%d\n", *(int *)dynlist_at(list, 10));
 
-
-
-
-
     dynlist_free(list);
 }
 
@@ -175,9 +171,6 @@ void macro_list(void) {
     puts(word);
     vec_free(word);
 }
-
-
-
 
 void test_tree(void) {
 }
