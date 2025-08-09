@@ -39,8 +39,7 @@ typedef enum {
     RightRot,
 } RotationDir;
 
-//static TreeNode *node_init(const void *value, const TreeNode *parent, size_t elem_size, AllocFunc alloc) {
-TreeNode *node_init(const void *value, const TreeNode *parent, size_t elem_size, AllocFunc alloc) {
+static TreeNode *node_init(const void *value, const TreeNode *parent, size_t elem_size, AllocFunc alloc) {
     // Allocate Node
     TreeNode *new_node = alloc(sizeof(TreeNode) + elem_size);
     if (new_node == NULL) {
@@ -175,7 +174,7 @@ static void node_free(FreeFunc dealloc, TreeNode *node) {
 /********************************* Tree ***************************************/
 
 struct _Tree {
-    const size_t elem_size;
+    size_t elem_size;
     TreeNode *root;
     AllocFunc alloc;
     FreeFunc dealloc;
@@ -184,18 +183,27 @@ struct _Tree {
 
 
 Tree *tree_init(const size_t elem_size, AllocFunc alloc, FreeFunc dealloc, Comparator comp) {
+    // Check if alloc and free could be NULL
+    AllocFunc local_alloc = alloc;
+    FreeFunc local_free = dealloc;
+    if (alloc == NULL || dealloc == NULL) {
+        local_alloc = malloc;
+        local_free = free;
+    }
+
+
     // Allcoate local tree
     Tree local_tree = {
         .elem_size = elem_size,
-        .alloc = alloc == NULL ? malloc : alloc,
-        .dealloc = dealloc == NULL ? free : dealloc,
+        .alloc = local_alloc,
+        .dealloc = local_free,
         .root = NULL,
         .comp = comp == NULL ? memcmp : comp,
     };
 
 
     // Allocate space on heap
-    Tree *new_tree = alloc(sizeof(Tree));
+    Tree *new_tree = local_alloc(sizeof(Tree));
     if (new_tree == NULL) {
         return NULL;
     }
@@ -261,11 +269,7 @@ Tree *tree_init_def(const size_t elem_size, const Comparator comp) {
         .comp = comp,
     };
 
-    // Declare default allocator (to prevent warnings)
-    Allocator def_alloc = default_allocator;
-
-    // Allocate space on heap
-    Tree *new_tree = def_alloc.alloc(NULL, sizeof(Tree));
+    Tree *new_tree = malloc(sizeof(Tree));
     if (new_tree == NULL) {
         return NULL;
     }

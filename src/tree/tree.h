@@ -1,93 +1,57 @@
-#ifndef JAZZY_ALLOC_H
-#define JAZZY_ALLOC_H
+#ifndef JAZZY_ALLOC_TYPES
+#define JAZZY_ALLOC_TYPES
 
 // Libraries
-#include <stddef.h>
-#include <stdlib.h>
-/// This struct exists to encapsulate an Allocator.
-/// It is used to initialize Data structures etc.
-/// Usually passed by value into an initializer function.
-typedef struct _Allocator {
-    /// Handle to context
-    void *context;
+#include<stddef.h>
 
-    /// Params:
-    /// - void * -> Pointer to context
-    /// - size_t -> amount of bytes neede
-    void *(*alloc)(void *, size_t);
-
-    /// Params:
-    /// - void * -> Pointer to context
-    /// - void * -> Pointer to memory
-    void (*dealloc)(void *, void *);
-
-    /// Params:
-    /// - void * -> Pointer to context
-    /// - void * -> Pointer to memory
-    /// - size_t -> new size
-    void *(*realloc)(void *, void *, size_t);
-} Allocator;
-
-
-/// This macro creates an Allocator. Use only if desired.
-#define create_allocator(cont, allocat, deallocat, reallocat) \
-    (Allocator) { \
-        .context = cont, \
-        .alloc = allocat, \
-        .dealloc = deallocat, \
-        .realloc = reallocat, \
-    }
-
-
-/// This allocator just encapsulates
-/// malloc, free and realloc
-static void *__malloc_alloc(void *context, size_t size) { return malloc(size); }
-static void __malloc_free(void *context, void *ptr) { free(ptr); }
-static void *__malloc_realloc(void *context, void *ptr, size_t new_size) { return realloc(ptr, new_size); }
-
-/// Macro for the default allocator
-#define default_allocator create_allocator(NULL, __malloc_alloc, __malloc_free, __malloc_realloc)
-
-
-/* The following part is seperate from above */
 
 /// This type represents functions that are used to allocate memory
 /// the function 'malloc' is of this type
+///
+/// Parameters:
+/// - size_t: amount of bytes needed
 typedef void *(*AllocFunc)(size_t);
 
 /// This type represents functions that are used to reallocate memory
 /// the function 'realloc' is of this type
+///
+/// Parameters:
+/// - void *: old pointer
+/// - size_t: amount of bytes needed
 typedef void *(*ReAllocFunc)(void *, size_t);
+
+/// This type represents functions that are used to allocate initialized memory
+/// the function 'calloc' is of this type
+///
+/// Parameters:
+/// - void *: old pointer
+/// - size_t: amount of bytes needed
+typedef void (*CalloFunc)(size_t);
 
 /// This type represents functions that are used to free memory
 /// the function 'free' is of this type
+///
+/// Parameters:
+/// - void *: pointer to memory  to free
 typedef void (*FreeFunc)(void *);
 
 
-
-#endif // JAZZY_ALLOC_H
+#endif // JAZZY_ALLOC_TYPES
 
 
 
 #ifndef JAZZY_TREE_H
 #define JAZZY_TREE_H
 
-
+// Libraries
+#include <stddef.h>
+#include <stdlib.h>
 
 
 
 /// This type represents functions that are used to compare to
 /// blocks of memory the function 'memcmp' is of this type
 typedef int (*Comparator)(const void *, const void *, size_t);
-
-
-/// Special handle to a tree
-///
-/// This type represents a special handle to a tree. This pointer actually
-/// points to a temporary buffer that is used to store values that are
-/// passed to the tree.
-typedef void *SpecialTree;
-
 
 
 /// A handle to a tree
@@ -112,33 +76,6 @@ typedef struct _Tree Tree;
 Tree *tree_init(const size_t elem_size, AllocFunc alloc, FreeFunc dealloc, Comparator comp);
 
 
-/// Initialize a Tree with a value buffer
-///
-/// This function works like `tree_init` but the pointer that is returned by
-/// `tree_init` lies sizeof(Tree *) bytes behind the pointer retuned by this
-/// function. This function is actually not meant to be used normally it is a
-/// helper for a future macro wrapper for this data structure
-///
-/// Parameters:
-///   - elem_size: size of the elements that are stored in the tree
-///   - alloc: memory allocator
-///   - dealloc: memory free function
-///   - comp: function used to compare two values
-///
-/// Returns:
-///   A pointer to a value buffer or NULL if the memory allocation fails
-SpecialTree tree_init_special(const size_t elem_size, AllocFunc alloc, FreeFunc dealloc, Comparator comp);
-
-/// Get a tree handle from a special handle
-///
-/// This function returns a normal tree handle from a SpecialHandle
-///
-/// Parameters:
-///   - handle: special tree handle that was returned by `tree_init_w_buf` 
-///
-/// Returns:
-///   - A normal tree handle
-Tree *tree_from_handle(SpecialTree handle);
 
 /// Insert a value into a tree
 ///
@@ -183,15 +120,19 @@ void tree_delete(Tree *tree, const void *value);
 void tree_free(Tree *tree);
 
 
-/// Free the entire tree
-///
-/// This function frees the tree according to [dealloc] which was specified
-/// in `tree_init_special`. The tree should not be used after it has been freed.
+
+/******************************* Macro wrapper ********************************/
+
+/// Initialize a tree
+/// 
+/// This macro initializes a tree and assigns it to [ptr]
+/// ptr should be pointer to the type you plan to store in
+/// the tree.
 ///
 /// Parameters:
-///   - handle: special handle to a tree that was returned by `tree_init_special`
-void tree_free_special(SpecialTree handle);
-
+///
+#define tree_new(ptr, alloc, dealloc, compare) \
+    ptr = tree_init_special(sizeof(*ptr), alloc, dealloc, compare)
 
 
 /// Put a value into a Tree
@@ -224,7 +165,9 @@ void tree_free_special(SpecialTree handle);
 ///   - tree: a pointer to a type of [value]
 ///   - value: the value to lookup
 #define tree_get(variable, tree, value) \
-    *tree = value; \
+    if (tree != NULL) { \
+        *tree = value; \
+    } \
     variable = (tree_lookup(tree_from_handle(tree), tree)); \
 
 
@@ -238,7 +181,59 @@ void tree_free_special(SpecialTree handle);
 #define tree_del(tree) \
     tree_free_special(tree);
 
+/****************** Implementation Details for macro wrapper ******************/
 
 
 
+/// Special handle to a tree
+///
+/// This type represents a special handle to a tree. This pointer actually
+/// points to a temporary buffer that is used to store values that are
+/// passed to the tree.
+typedef void *SpecialTree;
+
+
+
+
+
+/// Initialize a Tree with a value buffer
+///
+/// This function works like `tree_init` but the pointer that is returned by
+/// `tree_init` lies sizeof(Tree *) bytes behind the pointer retuned by this
+/// function. This function is actually not meant to be used normally it is a
+/// helper for a future macro wrapper for this data structure
+///
+/// Parameters:
+///   - elem_size: size of the elements that are stored in the tree
+///   - alloc: memory allocator
+///   - dealloc: memory free function
+///   - comp: function used to compare two values
+///
+/// Returns:
+///   A pointer to a value buffer or NULL if the memory allocation fails
+SpecialTree tree_init_special(const size_t elem_size, AllocFunc alloc, FreeFunc dealloc, Comparator comp);
+
+/// Get a tree handle from a special handle
+///
+/// This function returns a normal tree handle from a SpecialHandle
+///
+/// Parameters:
+///   - handle: special tree handle that was returned by `tree_init_w_buf` 
+///
+/// Returns:
+///   - A normal tree handle
+Tree *tree_from_handle(SpecialTree handle);
+
+
+
+
+
+/// Free the entire tree
+///
+/// This function frees the tree according to [dealloc] which was specified
+/// in `tree_init_special`. The tree should not be used after it has been freed.
+///
+/// Parameters:
+///   - handle: special handle to a tree that was returned by `tree_init_special`
+void tree_free_special(SpecialTree handle);
 #endif // JAZZY_TREE_H
