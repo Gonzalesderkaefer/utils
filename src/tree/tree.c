@@ -182,7 +182,7 @@ struct _Tree {
 };
 
 
-Tree *tree_init(const size_t elem_size, AllocFunc alloc, FreeFunc dealloc, Comparator comp) {
+Tree *tree_init(const size_t elem_size, const AllocFunc alloc, const FreeFunc dealloc, const Comparator comp) {
     // Check if alloc and free could be NULL
     AllocFunc local_alloc = alloc;
     FreeFunc local_free = dealloc;
@@ -223,16 +223,21 @@ Tree *tree_from_handle(SpecialTree handle) {
 
 
 SpecialTree tree_init_special(const size_t elem_size, AllocFunc alloc, FreeFunc dealloc, Comparator comp) {
-    void *handle_and_buffer = alloc(sizeof(Tree *) + elem_size);
-    if (handle_and_buffer == NULL) {
-        return NULL;
-    }
 
     Tree *tree_ptr = tree_init(elem_size, alloc, dealloc, comp);
     if (tree_ptr == NULL) {
-        dealloc(handle_and_buffer);
         return NULL;
     }
+
+
+
+    void *handle_and_buffer = tree_ptr->alloc(sizeof(Tree *) + elem_size);
+    if (handle_and_buffer == NULL) {
+        FreeFunc dealloc = tree_ptr->dealloc;
+        dealloc(tree_ptr);
+        return NULL;
+    }
+
 
     // Copy tree pointer to handle_and_buffer
     memcpy(handle_and_buffer, &tree_ptr, sizeof(Tree *));

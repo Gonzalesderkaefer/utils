@@ -73,7 +73,7 @@ typedef struct _Tree Tree;
 ///
 /// Returns:
 ///   A pointer to a tree or NULL if the memory allocation fails
-Tree *tree_init(const size_t elem_size, AllocFunc alloc, FreeFunc dealloc, Comparator comp);
+Tree *tree_init(const size_t elem_size, const AllocFunc alloc, const FreeFunc dealloc, const Comparator comp);
 
 
 
@@ -223,7 +223,6 @@ SpecialTree tree_init_special(const size_t elem_size, AllocFunc alloc, FreeFunc 
 /// Returns:
 ///   - A normal tree handle
 Tree *tree_from_handle(SpecialTree handle);
-
 
 
 
