@@ -76,7 +76,7 @@
 
 
 // Initial size of the hashtable
-#define INIT_SIZE 4
+#define HTAB_INIT_SIZE 4
 
 
 
@@ -284,19 +284,19 @@ static Htab *comp2(_htab, _init)(const AllocFunc alloc, const FreeFunc dealloc,
     }
 
     // Allocate storage
-    Pair *new_storage = local_alloc(sizeof(Pair) * INIT_SIZE);
+    Pair *new_storage = local_alloc(sizeof(Pair) * HTAB_INIT_SIZE);
     if (new_storage == NULL) {
         local_free(new_htab);
         return NULL;
     }
 
     // Zero out memory
-    memset(new_storage, 0, sizeof(Pair) * INIT_SIZE);
+    memset(new_storage, 0, sizeof(Pair) * HTAB_INIT_SIZE);
 
     // Assign fields
     new_htab->dealloc = local_free;
     new_htab->alloc = local_alloc;
-    new_htab->capacity = INIT_SIZE;
+    new_htab->capacity = HTAB_INIT_SIZE;
     new_htab->hashfunc = hash_func == NULL ? comp2(_htab, _default_hash) : hash_func;
     new_htab->cmp_func = cmp_func == NULL ? comp2(_htab, _default_cmp): cmp_func;
     new_htab->storage = new_storage;
@@ -427,6 +427,46 @@ static void comp2(_htab, _free)(Htab *table) {
     // free the struct
     dealloc(table);
 }
+
+
+
+
+// Keys
+#undef k // The actual
+#undef snake_k // Used for
+#undef pascal_k // Used for the vec
+
+// Values
+#undef v // The actual
+#undef snake_v // Used for
+#undef pascal_v // Used for the vec
+
+// Macros for htab
+#undef _Htab
+#undef __htab
+#undef HtabOf
+#undef htabof
+#undef Htab
+#undef _htab
+
+
+// Macros for pair
+#undef _Pair
+#undef __pair
+#undef PairOf
+#undef pairof
+#undef Pair
+#undef _pair
+
+
+
+// Used to create function names
+#undef concat2
+#undef comp2
+
+
+// Initial size of the hashtable
+#undef HTAB_INIT_SIZE
 
 
 
