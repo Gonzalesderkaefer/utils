@@ -21,7 +21,7 @@ struct _Block{
 };
 
 
-static Block *blk_init() {
+static Block *blk_init(void) {
     // Allocate Block struct
     Block *new_block = malloc(sizeof(Block));
     if (new_block == NULL) {
